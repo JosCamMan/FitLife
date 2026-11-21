@@ -1061,7 +1061,7 @@ function vHoy(){
     <input type="range" min="0" max="10" value="${d.pain}" id="pain"><div class="pain"><span>0 nada</span><span>3–4 vigilar</span><span>≥5 parar</span></div>
     <label>Esfuerzo global de la sesión (RPE): <b id="rpeV">${d.rpe}</b>/10</label>
     <input type="range" min="1" max="10" value="${d.rpe}" id="rpe">
-    <label class="row" style="justify-content:space-between">Notas <button class="btn sm" id="mic" type="button">🎤 Dictar</button></label><textarea id="notes" placeholder="Sensaciones, sustituciones, qué molestó…">${esc(d.notes)}</textarea>
+    <label>Notas</label><textarea id="notes" placeholder="Sensaciones, sustituciones, qué molestó…">${esc(d.notes)}</textarea>
     <div class="row" style="margin-top:12px"><button class="btn pri" id="finish">✅ Terminar y guardar en el historial</button><button class="btn ghost" id="reset">Vaciar</button></div>
   </div>`;
   return h;
@@ -1251,7 +1251,7 @@ function vGuia(){
   <li>Pulsa <b>Compartir</b> (el cuadrado con la flecha) y luego <b>"Añadir a pantalla de inicio"</b>.</li>
   <li>Te queda un icono como si fuera una app. Lo que marques se guarda en tu cuenta y lo ves igual en el ordenador.</li></ol>
   <p>Arriba a la derecha tiene que poner <b>☁️ sincronizado</b>. Si pone otra cosa, los datos solo están en ese dispositivo.</p></div>`}
-  <div class="small muted" style="margin:4px 2px">Versión de la app: 8 (21/11/2026)</div>
+  <div class="small muted" style="margin:4px 2px">Versión de la app: 9 (21/11/2026)</div>
   <h2>Gimnasio de la comunidad</h2><div class="card small"><ul>
   <li>Hay un cartel que pide no soltar pesas ni discos: bajada siempre controlada, también en las cargadas.</li>
   <li>La polea del rack aguanta como máximo 100 kg.</li>
@@ -1441,7 +1441,7 @@ function vCoach(){
   });
   if(chatBusy) h+=`<div class="card small muted">Pensando…</div>`;
   h+=`<div class="card" style="position:sticky;bottom:78px"><textarea id="gq" placeholder="Pregúntale algo…" style="min-height:60px"></textarea>
-    <div class="row" style="margin-top:6px"><button class="btn sm" id="gmic" type="button">🎤</button><span class="spacer"></span><button class="btn pri" id="gsend" ${chatBusy?'disabled':''}>Enviar</button></div></div>
+    <div class="row" style="margin-top:6px"><span class="spacer"></span><button class="btn pri" id="gsend" ${chatBusy?'disabled':''}>Enviar</button></div></div>
     <div class="small muted" style="margin:6px 2px">Las respuestas pueden equivocarse. No sustituye a un médico ni a un fisio.</div>`;
   return h;
 }
@@ -1555,7 +1555,7 @@ function bindCoach(v){
   v.querySelectorAll('[data-gq]').forEach(b=>b.onclick=()=>askCoach(b.dataset.gq));
   const send=document.getElementById('gsend'); if(send){ const ta=document.getElementById('gq');
     send.onclick=()=>{ const q=ta.value; ta.value=''; askCoach(q); };
-    const mic=document.getElementById('gmic'); let on=false;
+    const mic=document.getElementById('gmic'); let on=false; if(mic){
     const setBtn=v=>{ on=v; mic.textContent=v?'⏹':'🎤'; mic.classList.toggle('pri',v); };
     mic.onclick=()=>{
       if(geminiDictateActive() || geminiDictateAvailable()){
@@ -1565,7 +1565,7 @@ function bindCoach(v){
       if(on){ stopRec(); return; }
       const ok=browserDictate(()=>ta.value, v=>{ ta.value=v; }, setBtn, ()=>kbTip(ta));
       if(!ok) kbTip(ta);
-    }; }
+    }; } }
 }
 
 // ====== DICTADO GRABANDO + TRANSCRIPCIÓN CON GEMINI ======
