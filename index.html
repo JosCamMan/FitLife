@@ -21,9 +21,9 @@
 html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 a{color:var(--acc)}
-.wrap{max-width:760px;margin:0 auto;padding:14px 14px 120px;padding-top:max(14px, env(safe-area-inset-top))}
-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
-header h1{font-size:19px;margin:0;letter-spacing:-.01em}
+.wrap{max-width:760px;margin:0 auto;padding:0 14px 120px}
+header{position:sticky;top:0;z-index:15;background:var(--bg);display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 -14px 10px;padding:calc(env(safe-area-inset-top) + 22px) 14px 10px;border-bottom:1px solid var(--line)}
+header h1{font-size:22px;margin:0;letter-spacing:-.01em;width:100%}
 .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-size:12.5px;color:var(--mut);white-space:nowrap}
 .chip.on{background:var(--acc);color:#10200a;border-color:var(--acc);font-weight:650}
 .chip.ph{color:var(--acc);border-color:#3c5a2a}
@@ -107,7 +107,7 @@ svg text{fill:var(--mut);font-size:10px}
 <body>
 <div class="wrap">
   <header>
-    <h1>💪 Programa de gimnasio</h1>
+    <h1 id="ttl">🏋️ Hoy</h1>
     <span class="chip ph" id="phChip"></span>
     <span class="chip" id="wkChip"></span>
     <span class="spacer"></span>
@@ -974,6 +974,7 @@ function draftKey(it,bi,ii){ return EX[it.ex].type+':'+it.ex+':'+bi+':'+ii; }
 
 // ====== RENDER ======
 function render(){
+  document.getElementById('ttl').textContent=({hoy:'🏋️ Entreno de hoy',prog:'🗓️ Programa',food:'🥗 Comida',hist:'📈 Historial',prs:'🏆 Marcas',guia:'📘 Guía',coach:'🤖 Coach'})[tab]||'';
   document.getElementById('phChip').textContent=PHASES[S.phase].name;
   document.getElementById('wkChip').textContent='Semana '+weekNo()+' de 12'+(isDeload()?' · descarga':weekNo()===12?' · test de marcas':'');
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.t===tab));
@@ -1250,6 +1251,7 @@ function vGuia(){
   <li>Pulsa <b>Compartir</b> (el cuadrado con la flecha) y luego <b>"Añadir a pantalla de inicio"</b>.</li>
   <li>Te queda un icono como si fuera una app. Lo que marques se guarda en tu cuenta y lo ves igual en el ordenador.</li></ol>
   <p>Arriba a la derecha tiene que poner <b>☁️ sincronizado</b>. Si pone otra cosa, los datos solo están en ese dispositivo.</p></div>`}
+  <div class="small muted" style="margin:4px 2px">Versión de la app: 5 (21/11/2026)</div>
   <h2>Gimnasio de la comunidad</h2><div class="card small"><ul>
   <li>Hay un cartel que pide no soltar pesas ni discos: bajada siempre controlada, también en las cargadas.</li>
   <li>La polea del rack aguanta como máximo 100 kg.</li>
@@ -1527,8 +1529,8 @@ function bindCoach(v){
     const setBtn=v=>{ on=v; mic.textContent=v?'⏹':'🎤'; mic.classList.toggle('pri',v); };
     mic.onclick=()=>{
       if(on){ stopRec(); setBtn(false); return; }
-      const ok=browserDictate(t=>{ ta.value=(ta.value?ta.value.replace(/\s*$/,' '):'')+t.trim(); }, setBtn, ()=>{ ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); });
-      if(!ok){ ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); }
+      const ok=browserDictate(t=>{ ta.value=(ta.value?ta.value.replace(/\s*$/,' '):'')+t.trim(); }, setBtn, ()=>kbTip(ta));
+      if(!ok) kbTip(ta);
     }; }
 }
 
@@ -1602,7 +1604,11 @@ async function finish(){
 // una frase por pulsación y corte de seguridad a los 60 s.
 let activeRec=null, recTimer=null;
 function stopRec(){ if(activeRec){ const r=activeRec; activeRec=null; try{ r.onresult=null; r.abort(); }catch(e){} } clearTimeout(recTimer); }
+const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 function browserDictate(append, setBtn, onFail){
+  // En iPhone/iPad el reconocimiento de voz de las webs no es fiable (falla en Chrome y en las apps
+  // de la pantalla de inicio): se usa el dictado del teclado, que funciona siempre.
+  if(IS_IOS) return false;
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR) return false;
   stopRec();
@@ -1635,7 +1641,7 @@ function setupMic(ta){
     kbTip(ta);
   };
 }
-function kbTip(ta){ ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); }
+function kbTip(ta){ ta.focus(); try{ ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){} toast('Ahora pulsa el 🎤 del teclado (abajo a la derecha) y habla'); }
 
 // ====== TEMPORIZADOR ======
 let tEnd=0, tInt=null;
