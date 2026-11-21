@@ -1251,7 +1251,7 @@ function vGuia(){
   <li>Pulsa <b>Compartir</b> (el cuadrado con la flecha) y luego <b>"Añadir a pantalla de inicio"</b>.</li>
   <li>Te queda un icono como si fuera una app. Lo que marques se guarda en tu cuenta y lo ves igual en el ordenador.</li></ol>
   <p>Arriba a la derecha tiene que poner <b>☁️ sincronizado</b>. Si pone otra cosa, los datos solo están en ese dispositivo.</p></div>`}
-  <div class="small muted" style="margin:4px 2px">Versión de la app: 7 (21/11/2026)</div>
+  <div class="small muted" style="margin:4px 2px">Versión de la app: 8 (21/11/2026)</div>
   <h2>Gimnasio de la comunidad</h2><div class="card small"><ul>
   <li>Hay un cartel que pide no soltar pesas ni discos: bajada siempre controlada, también en las cargadas.</li>
   <li>La polea del rack aguanta como máximo 100 kg.</li>
@@ -1488,21 +1488,51 @@ async function pickModel(key){
   }catch(e){}
   return 'gemini-flash-latest';
 }
+const GMODELS='gym-gemini-models';
+async function modelList(key){
+  try{ const l=JSON.parse(lsg(GMODELS)||'null'); if(l&&l.length&&Date.now()-(+lsg(GMODELS+'-t')||0)<864e5) return l; }catch(e){}
+  let names=[];
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key}});
+    if(r.ok){ const j=await r.json();
+      names=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace('models/',''))
+        .filter(n=>/^gemini-[\d.]+-flash(-lite)?$/.test(n));
+      const ver=n=>parseFloat(n.split('-')[1])||0, lite=n=>/lite$/.test(n)?1:0;
+      names.sort((a,b)=>lite(a)-lite(b)||ver(b)-ver(a)); }
+  }catch(e){}
+  ['gemini-flash-latest','gemini-flash-lite-latest'].forEach(n=>{ if(!names.includes(n)) names.push(n); });
+  lss(GMODELS, JSON.stringify(names)); lss(GMODELS+'-t', String(Date.now()));
+  return names;
+}
+// Llama a Gemini; si un modelo está saturado (503/500) reintenta y prueba el siguiente modelo
+async function callGemini(body, onStatus){
+  const key=lsg(GK); let models=(await modelList(key)).slice(0,4); let lastErr='';
+  const ok=lsg(GMODEL); if(ok && models.includes(ok)) models=[ok, ...models.filter(m=>m!==ok)]; // primero el último que funcionó
+  for(const model of models){
+    for(let attempt=0; attempt<2; attempt++){
+      let r, j={};
+      try{ r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body)}); j=await r.json().catch(()=>({})); }
+      catch(e){ throw new Error('No hay conexión con Gemini. ¿Tienes internet?'); }
+      if(r.ok){ lss(GMODEL, model); return j; }
+      const msg=(j.error&&j.error.message)||'';
+      if(r.status===400 && /API key/i.test(msg)) throw new Error('La clave no es válida. Revísala con el botón 🔑 en Coach.');
+      if(r.status===403) throw new Error('La clave no tiene permiso para Gemini. Revísala en aistudio.google.com.');
+      if(r.status===404){ lss(GMODELS,null); break; }               // modelo retirado: siguiente
+      if(r.status===429){ lastErr='Límite gratuito de Gemini alcanzado por ahora. Prueba en un rato.'; break; } // cupo de ese modelo: siguiente
+      if(r.status>=500){ lastErr='Gemini está saturado ahora mismo. Prueba en un minuto.'; onStatus&&onStatus('Gemini va lento, reintentando…'); await new Promise(res=>setTimeout(res, 1000)); continue; }
+      throw new Error(msg||('Error '+r.status));
+    }
+  }
+  throw new Error(lastErr||'No se pudo conectar con Gemini.');
+}
 async function askCoach(q){
   const key=lsg(GK); if(!key||chatBusy||!q.trim()) return;
   chat.push({role:'user', text:q.trim()}); chatBusy=true; render(); scrollEnd();
   try{
-    const model=await pickModel(key);
     const body={ systemInstruction:{parts:[{text:coachContext()}]},
       contents: chat.slice(-12).map(m=>({role:m.role==='user'?'user':'model', parts:[{text:m.text}]})) };
     if(lsg(GSEARCH)!=='0') body.tools=[{google_search:{}}];
-    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body)});
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok){
-      const msg=(j.error&&j.error.message)||('Error '+r.status);
-      if(r.status===404){ lss(GMODEL,null); }
-      throw new Error(r.status===400&&/API key/i.test(msg)?'La clave no es válida. Revísala con el botón 🔑.': r.status===429?'Has llegado al límite gratuito de Gemini por ahora. Prueba en un rato.': r.status===404?'Ese modelo ya no existe; vuelve a intentarlo y elegiré otro.': msg);
-    }
+    const j=await callGemini(body);
     const c=(j.candidates||[])[0]||{};
     const text=((c.content&&c.content.parts)||[]).map(p=>p.text||'').join('').trim()||'(sin respuesta)';
     const gm=c.groundingMetadata||{};
@@ -1585,15 +1615,12 @@ async function toWav16k(blob){
 }
 function b64(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); }); }
 async function transcribe(blob){
-  const key=lsg(GK); const model=await pickModel(key);
   let wav; try{ wav=await toWav16k(blob); }catch(e){ wav=blob; }
   const body={ contents:[{ role:'user', parts:[
     { inline_data:{ mime_type: wav.type||'audio/wav', data: await b64(wav) } },
     { text:'Transcribe literalmente este audio en español de España. Devuelve SOLO el texto transcrito, con puntuación, sin comillas ni comentarios. Si no hay voz, devuelve una cadena vacía.' } ] }],
     generationConfig:{ temperature:0 } };
-  const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body)});
-  const j=await r.json().catch(()=>({}));
-  if(!r.ok){ if(r.status===404) lss(GMODEL,null); throw new Error(r.status===429?'Límite gratuito de Gemini alcanzado, prueba en un rato.':'Error al transcribir ('+r.status+').'); }
+  const j=await callGemini(body, m=>toast(m));
   const c=(j.candidates||[])[0]||{};
   return ((c.content&&c.content.parts)||[]).map(p=>p.text||'').join('').trim().replace(/^["“]|["”]$/g,'');
 }
