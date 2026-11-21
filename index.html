@@ -1,0 +1,1652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Gym">
+<meta name="theme-color" content="#0f1210">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>Programa de gimnasio · Camacho</title>
+<style>
+:root{
+  --bg:#0f1210; --card:#181c19; --card2:#1f2420; --line:#2b322d; --txt:#e9efe9; --mut:#97a39a;
+  --acc:#9be15d; --acc2:#5fd3a0; --warn:#f2b84b; --bad:#ef6a5a; --r:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--acc)}
+.wrap{max-width:760px;margin:0 auto;padding:14px 14px 120px;padding-top:max(14px, env(safe-area-inset-top))}
+header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+header h1{font-size:19px;margin:0;letter-spacing:-.01em}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-size:12.5px;color:var(--mut);white-space:nowrap}
+.chip.on{background:var(--acc);color:#10200a;border-color:var(--acc);font-weight:650}
+.chip.ph{color:var(--acc);border-color:#3c5a2a}
+.spacer{flex:1}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(15,18,16,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+nav.tabs button{flex:1;max-width:150px;background:none;border:0;padding:8px 2px;border-radius:10px;color:var(--mut);font-size:11.5px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs button .i{font-size:18px;line-height:1}
+nav.tabs button.on{color:var(--acc);background:#1b2318}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sessions{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.sessions button{flex:0 0 auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;text-align:left;cursor:pointer;min-width:118px}
+.sessions button b{display:block;font-size:13px}
+.sessions button span{font-size:11.5px;color:var(--mut)}
+.sessions button.on{border-color:var(--acc);background:#1a2416}
+.sessions button.next::after{content:"siguiente";display:block;font-size:10.5px;color:var(--acc);margin-top:2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin:10px 0}
+.blockh{display:flex;align-items:baseline;gap:8px;margin:20px 2px 6px}
+.blockh h3{margin:0;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--acc)}
+.blockh small{color:var(--mut)}
+.ex{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin:8px 0;overflow:hidden}
+.ex.done{border-color:#3c5a2a}
+.ex .top{display:flex;gap:10px;align-items:flex-start;padding:11px 12px;cursor:pointer}
+.ex .ss{flex:0 0 auto;font-size:11px;font-weight:700;color:#10200a;background:var(--acc2);border-radius:6px;padding:2px 6px;margin-top:2px}
+.ex .nm{font-weight:650}
+.ex .rx{font-size:13px;color:var(--mut);margin-top:2px}
+.ex .rx b{color:var(--txt);font-weight:600}
+.ex .last{font-size:12px;color:var(--acc2);margin-top:3px}
+.ck{flex:0 0 auto;width:26px;height:26px;border-radius:8px;border:2px solid var(--line);background:var(--card2);display:grid;place-items:center;cursor:pointer;font-size:15px;color:transparent}
+.ck.on{background:var(--acc);border-color:var(--acc);color:#10200a}
+.det{padding:0 12px 12px;display:none}
+.ex.open .det{display:block}
+.det ol,.det ul{margin:6px 0 8px 18px;padding:0}
+.det li{margin:3px 0}
+.det .lbl{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin-top:8px}
+.alt{background:#2a2414;border:1px solid #4d4020;color:#f3dca2;border-radius:10px;padding:8px 10px;font-size:13.5px;margin-top:8px}
+.note{background:#17231c;border:1px solid #284636;color:#bfe8d1;border-radius:10px;padding:8px 10px;font-size:13.5px;margin-top:8px}
+.btn{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;font-size:13.5px}
+.btn.pri{background:var(--acc);color:#10200a;border-color:var(--acc);font-weight:700}
+.btn.sm{padding:5px 9px;font-size:12.5px}
+.btn.ghost{background:none}
+.btn.danger{color:var(--bad);border-color:#5a2a25}
+.sets{padding:0 12px 12px;display:grid;gap:6px}
+.set{display:grid;grid-template-columns:26px 1fr 1fr 1fr;gap:8px;align-items:center}
+.set label{font-size:12px;color:var(--mut)}
+.set input{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:7px 8px;text-align:center}
+.set.ok input{border-color:#3c5a2a}
+.cardio{display:flex;gap:8px;align-items:center;padding:0 12px 12px}
+.cardio input{width:80px;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:7px 8px;text-align:center}
+.finish{margin-top:20px}
+.finish label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input[type=range]{width:100%;accent-color:var(--acc)}
+textarea{width:100%;min-height:70px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px}
+.prog{height:6px;background:var(--card2);border-radius:99px;overflow:hidden;margin:6px 0 2px}
+.prog i{display:block;height:100%;background:var(--acc);width:0}
+.timer{position:fixed;left:50%;transform:translateX(-50%);bottom:74px;z-index:30;background:#1c2a17;border:1px solid var(--acc);border-radius:999px;padding:8px 10px 8px 16px;display:none;align-items:center;gap:10px;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.timer.show{display:flex}
+.timer b{font-variant-numeric:tabular-nums;font-size:20px;color:var(--acc);min-width:58px}
+.timer.end b{color:var(--warn)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+.muted{color:var(--mut)}
+.small{font-size:12.5px}
+h2{font-size:17px;margin:18px 2px 8px}
+.pain{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mut)}
+.log{cursor:pointer}
+.log .sum{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.log .body{display:none;margin-top:8px}
+.log.open .body{display:block}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.sel{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px;width:100%}
+.critem{display:flex;gap:10px;align-items:flex-start;margin:8px 0}
+.status{font-size:11.5px}
+.empty{color:var(--mut);text-align:center;padding:30px 10px}
+svg text{fill:var(--mut);font-size:10px}
+.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--acc);color:#10200a;font-weight:700;padding:8px 14px;border-radius:10px;z-index:50;display:none}
+.toast.show{display:block}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>💪 Programa de gimnasio</h1>
+    <span class="chip ph" id="phChip"></span>
+    <span class="chip" id="wkChip"></span>
+    <span class="spacer"></span>
+    <span class="status muted" id="status">cargando…</span>
+  </header>
+  <main id="view"></main>
+</div>
+<div class="timer" id="timer"><span class="muted small">Descanso</span><b id="tLeft">0:00</b><button class="btn sm" id="tPlus">+30 s</button><button class="btn sm" id="tStop">✕</button></div>
+<div class="toast" id="toast"></div>
+<nav class="tabs" id="tabs">
+  <button data-t="hoy" class="on"><span class="i">🏋️</span>Hoy</button>
+  <button data-t="prog"><span class="i">🗓️</span>Programa</button>
+  <button data-t="food"><span class="i">🥗</span>Comida</button>
+  <button data-t="hist"><span class="i">📈</span>Historial</button>
+  <button data-t="prs"><span class="i">🏆</span>Marcas</button>
+  <button data-t="guia"><span class="i">📘</span>Guía</button>
+  <button data-t="coach" class="coachtab"><span class="i">🤖</span>Coach</button>
+</nav>
+<script>
+const STANDALONE = true;
+// ====== DATOS DEL PROGRAMA ======
+const START_DATE = '2026-11-21';
+
+// Base de cálculo (1RM estimado) a partir de tus marcas de AimHarder
+const BASE_PRS = {
+  bench:      { name: 'Press banca', rm: 95,  src: '75 kg × 8 (23/12/2025) → 1RM estimado' },
+  backsquat:  { name: 'Sentadilla trasera', rm: 142.5, src: '142,5 kg × 1 (17/08/2026)' },
+  frontsquat: { name: 'Sentadilla frontal', rm: 112, src: '105 kg × 2 (25/09/2024) → estimado' },
+  deadlift:   { name: 'Peso muerto', rm: 180, src: '180 kg × 1 (24/09/2024)' },
+  ohp:        { name: 'Press militar', rm: 70, src: 'Shoulder press 70 kg × 1 (07/11/2025)' },
+  pushpress:  { name: 'Push press', rm: 80, src: '75 kg × 2 (06/07/2026) → estimado' },
+  powerclean: { name: 'Power clean', rm: 105, src: '105 kg × 1 (09/04/2025)' },
+};
+
+const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+
+// ====== BIBLIOTECA DE EJERCICIOS ======
+// how: pasos · cues: claves · avoid: errores · alt: alternativa si molesta · video: búsqueda
+const EX = {
+  // ---------- MOVILIDAD ----------
+  shoulder_cars: { name: 'CARs de hombro', type: 'mob',
+    how: ['De pie, aprieta el puño y tensa todo el cuerpo (glúteo y abdomen) para que solo se mueva el hombro.',
+          'Dibuja el círculo más grande posible con el brazo estirado: delante, arriba, detrás y abajo.',
+          'Lento: unos 10–15 segundos por vuelta. Luego en sentido contrario.'],
+    cues: ['El tronco no se mueve ni se arquea.', 'Busca el borde del rango y empuja con tensión, sin rebotes.'],
+    video: 'shoulder CARs controlled articular rotations tutorial' },
+  tspine_book: { name: 'Libro abierto torácico', type: 'mob',
+    how: ['Túmbate de lado con las rodillas a 90° y una mancuerna ligera o sin peso en la mano de arriba.',
+          'Abre el brazo de arriba hacia el otro lado siguiendo la mano con la mirada.',
+          'Mantén 2 s al final y espira. Vuelve controlando.'],
+    cues: ['Las rodillas no se separan.', 'Gira la parte alta de la espalda, no la zona lumbar.'],
+    video: 'open book thoracic rotation exercise' },
+  hip_9090: { name: '90/90 de cadera con elevaciones', type: 'mob',
+    how: ['Siéntate en el suelo con las dos piernas dobladas a 90°: una delante y otra al lado.',
+          'Gira las rodillas al otro lado sin usar las manos, si puedes.',
+          'En cada lado, inclínate un poco sobre la pierna de delante y levanta 2 cm el pie de atrás durante 3 s. Esto es un "lift-off".'],
+    cues: ['Espalda alta y larga.', 'Si notas pinchazo en el glúteo, reduce el rango o apoya las manos.'],
+    video: '90 90 hip switch lift offs mobility' },
+  wall_slides: { name: 'Deslizamientos en pared', type: 'mob',
+    how: ['Espalda y antebrazos contra la pared, con los brazos en forma de "W".',
+          'Desliza los brazos hacia arriba hasta formar una "Y" sin que la zona lumbar se despegue.',
+          'Baja tirando de los codos hacia los bolsillos.'],
+    cues: ['Costillas abajo.', 'Mejor menos recorrido y bien hecho.'],
+    video: 'wall slides shoulder mobility' },
+  sciatic_slider: { name: 'Deslizamiento neural del ciático (slider)', type: 'mob',
+    how: ['Siéntate en el borde de un banco con la espalda recta.',
+          'Estira la rodilla y a la vez lleva la cabeza hacia atrás, mirando al techo.',
+          'Dobla la rodilla y a la vez baja la barbilla. Hazlo de forma fluida.'],
+    cues: ['Es un deslizamiento, NO un estiramiento: no debe tensar ni doler.',
+           'Si reproduce el dolor que baja por la pierna, haz menos recorrido o sáltatelo.'],
+    video: 'sciatic nerve slider seated exercise' },
+  hip_cars: { name: 'CARs de cadera a cuatro patas', type: 'mob',
+    how: ['A cuatro patas, con el abdomen apretado.',
+          'Lleva una rodilla hacia el pecho, ábrela hacia fuera, gírala hacia atrás y vuelve. Dibuja el círculo más grande que puedas.',
+          '3 vueltas por sentido y lado, muy lentas.'],
+    cues: ['La pelvis y la espalda no se mueven.', 'Si duele al llevar la rodilla al pecho, ese tramo hazlo más corto.'],
+    video: 'hip CARs quadruped tutorial' },
+  ankle_ktw: { name: 'Rodilla a la pared con carga (tobillo)', type: 'mob',
+    how: ['Pie a un palmo de la pared, o sobre el cajón con una mancuerna encima del muslo.',
+          'Lleva la rodilla hacia delante, por encima de los dedos, sin levantar el talón.',
+          'Mantén 2 s al final y vuelve.'],
+    cues: ['El talón pegado al suelo.', 'La rodilla va por encima del 2.º–3.er dedo.'],
+    video: 'knee to wall ankle mobility weighted' },
+  couch_active: { name: 'Couch stretch activo', type: 'mob',
+    how: ['Una rodilla en el suelo, apoyada en la pared o en el banco, con el empeine apoyado detrás.',
+          'Aprieta el glúteo de la pierna de atrás y lleva la pelvis hacia delante.',
+          'Mantén 30 s. Luego 3 contracciones de 5 s empujando el empeine contra el apoyo.'],
+    cues: ['Costillas abajo, sin arquear la espalda.', 'Ponte una esterilla debajo de la rodilla.'],
+    video: 'couch stretch hip flexor PAILs RAILs' },
+  tib_raises: { name: 'Elevaciones de tibial', type: 'mob',
+    how: ['Espalda contra la pared y los talones a un pie de distancia.',
+          'Sube las puntas de los pies todo lo que puedas y baja lento.'],
+    cues: ['Rango completo.', 'Si te resulta fácil, aléjate más de la pared.'],
+    video: 'tibialis raises wall' },
+  copenhagen: { name: 'Plancha Copenhague corta', type: 'mob',
+    how: ['Plancha lateral con la rodilla de arriba apoyada en el banco y la de abajo libre.',
+          'Sube la cadera y aguanta. Es la versión corta: el apoyo está en la rodilla.'],
+    cues: ['El cuerpo en línea recta.', 'Trabaja el aductor y estabiliza la pelvis.'],
+    video: 'short lever copenhagen plank' },
+  side_lying_abd: { name: 'Abducción de cadera tumbado (glúteo medio)', type: 'mob',
+    how: ['Túmbate de lado con la pierna de abajo doblada y la de arriba recta, un poco por detrás del cuerpo.',
+          'Sube la pierna con el talón por delante y la punta del pie ligeramente hacia el suelo.',
+          'Aguanta 2 s arriba y baja en 3 s.'],
+    cues: ['La pelvis no rueda hacia atrás.', 'Debes notarlo en la parte alta y lateral del glúteo.'],
+    video: 'side lying hip abduction gluteus medius' },
+  cossack: { name: 'Sentadilla cosaca', type: 'mob',
+    how: ['Piernas muy abiertas. Baja hacia un lado doblando una rodilla mientras la otra pierna queda estirada con la punta del pie hacia arriba.',
+          'Ayúdate con una mancuerna delante como contrapeso.'],
+    cues: ['El talón de la pierna doblada no se levanta.', 'Solo baja hasta donde controles.'],
+    video: 'cossack squat tutorial' },
+  goblet_hold: { name: 'Sentadilla goblet profunda mantenida', type: 'mob',
+    how: ['Coge una mancuerna de 12–16 kg pegada al pecho y baja hasta el fondo de la sentadilla.',
+          'Mantén la posición. Usa los codos para abrir las rodillas y balancéate suavemente.'],
+    cues: ['Pecho alto.', 'Si molesta el glúteo, sube un poco.'],
+    video: 'goblet squat hold mobility pry' },
+  lat_hang: { name: 'Colgarse de la barra (pasivo + activo)', type: 'mob',
+    how: ['Cuélgate relajado 20 s.',
+          'Después haz 5 elevaciones escapulares: baja los hombros sin doblar los codos.'],
+    cues: ['Si tira del glúteo, apoya las puntas de los pies en el cajón.'],
+    video: 'dead hang scapular pull ups' },
+  thoracic_bench: { name: 'Extensión torácica en banco', type: 'mob',
+    how: ['De rodillas frente al banco, con los codos apoyados encima y una barra o palo en las manos.',
+          'Lleva el pecho hacia el suelo y las manos detrás de la cabeza. Espira y mantén 3 s.'],
+    cues: ['Abdomen activo para que no se hunda la zona lumbar.'],
+    video: 'bench thoracic extension stretch' },
+  glute_bridge: { name: 'Puente de glúteo con pausa', type: 'mob',
+    how: ['Boca arriba, con las rodillas dobladas y los pies apoyados.',
+          'Sube la cadera apretando el glúteo, aguanta 3 s y baja lento.'],
+    cues: ['Empuja con los talones.', 'Costillas abajo: no arquees la espalda al subir.'],
+    video: 'glute bridge pause' },
+  bird_dog: { name: 'Bird dog', type: 'mob',
+    how: ['A cuatro patas. Estira a la vez el brazo y la pierna contrarios.',
+          'Aguanta 3 s sin que se mueva la pelvis y vuelve.'],
+    cues: ['Imagina un vaso de agua en la zona lumbar.'],
+    video: 'bird dog exercise proper form' },
+
+  // ---------- FUERZA / HIPERTROFIA ----------
+  bench: { name: 'Press de banca', type: 'str', pr: 'bench',
+    how: ['Túmbate con los ojos bajo la barra. Junta las escápulas y apoya bien los pies.',
+          'Agarre un poco más ancho que los hombros. Saca la barra con los brazos estirados.',
+          'Baja controlando, en 3 s, hasta la parte baja del pecho. Pausa de 1 s tocando el pecho, sin rebotar, y empuja fuerte.'],
+    cues: ['Escápulas juntas y abajo durante toda la serie.', 'Codos a unos 45° del cuerpo, no abiertos a 90°.', 'Los glúteos no se despegan del banco.'],
+    avoid: ['Rebotar la barra en el pecho.', 'Levantar la cadera.'],
+    video: 'bench press technique tutorial' },
+  wpullup: { name: 'Dominadas lastradas', type: 'str',
+    how: ['Agarre prono algo más ancho que los hombros. Pon el lastre: una mancuerna entre los pies o un cinturón si hay.',
+          'Empieza bajando los hombros y sube hasta que la barbilla pase la barra.',
+          'Baja controlando en 2–3 s hasta estirar los brazos.'],
+    cues: ['Sin kipping: son estrictas.', 'Piernas quietas y un poco por delante del cuerpo.'],
+    alt: 'Si la mancuerna entre los pies tira del glúteo, haz dominadas sin lastre con 3 s de bajada.',
+    video: 'weighted pull up technique' },
+  ohp: { name: 'Press militar de pie', type: 'str', pr: 'ohp',
+    how: ['Barra apoyada en los hombros, codos un poco por delante de la barra y glúteo apretado.',
+          'Empuja en línea recta. Cuando la barra pase la frente, mete la cabeza "dentro de la ventana".',
+          'Baja controlando hasta la clavícula.'],
+    cues: ['Sin impulso de piernas: eso sería push press.', 'Costillas abajo, sin arquear la espalda.'],
+    video: 'overhead press technique standing' },
+  cs_row: { name: 'Remo con mancuernas con pecho apoyado', type: 'str',
+    how: ['Banco inclinado a 30–45°. Túmbate boca abajo con una mancuerna en cada mano.',
+          'Lleva los codos hacia atrás y hacia las caderas. Aprieta 2 s arriba.',
+          'Baja hasta estirar del todo los brazos.'],
+    cues: ['El pecho no se despega del banco: así la espalda baja descansa.', 'Pausa de 2 s arriba juntando las escápulas.'],
+    video: 'chest supported dumbbell row' },
+  facepull: { name: 'Face pull con cuerda', type: 'str',
+    how: ['Polea alta con la cuerda. Agarre neutro, con los pulgares hacia ti.',
+          'Tira hacia la cara separando las manos, con los codos altos, y gira para que los puños acaben apuntando al techo.',
+          '1 s de pausa y vuelta controlada.'],
+    cues: ['Peso ligero: se trabaja el manguito rotador y la parte posterior del hombro.'],
+    video: 'face pull rope technique' },
+  pallof: { name: 'Pallof press', type: 'str',
+    how: ['De lado a la polea, que debe quedar a la altura del pecho, con el agarre pegado al esternón.',
+          'Estira los brazos al frente sin dejar que la polea te gire el cuerpo. Aguanta 2 s y vuelve.'],
+    cues: ['Glúteos y abdomen apretados.', 'Es un antirrotacional: el tronco no se mueve.'],
+    video: 'pallof press cable' },
+  hip_thrust: { name: 'Hip thrust con barra', type: 'str',
+    how: ['Apoya la parte de abajo de las escápulas en el banco y la barra sobre la cadera, con un pad o una toalla debajo.',
+          'Pies a la anchura de la cadera. Al subir, las rodillas quedan a 90°.',
+          'Sube hasta que el cuerpo quede recto, aprieta el glúteo 2 s y baja controlando.'],
+    cues: ['Barbilla metida y mirada al frente: la cabeza acompaña al tronco.', 'Que no tire la zona lumbar.'],
+    alt: 'Si molesta, haz puente de glúteo en el suelo o hip thrust a una pierna sin peso.',
+    video: 'barbell hip thrust technique' },
+  stepup: { name: 'Step-up a cajón', type: 'str',
+    how: ['Cajón de 50 cm, o el que te deje la rodilla a unos 90°, con una mancuerna en cada mano.',
+          'Pisa con todo el pie y sube empujando con esa pierna, sin impulsarte con la de abajo.',
+          'Baja lento con la misma pierna.'],
+    cues: ['Tronco un poco inclinado hacia delante.', 'Si duele al subir la pierna al cajón, usa un cajón más bajo.'],
+    video: 'dumbbell step up technique' },
+  leg_curl: { name: 'Curl femoral (banco)', type: 'str',
+    how: ['Boca abajo en el accesorio del banco, con el rodillo justo encima del talón.',
+          'Dobla las rodillas hasta el final del recorrido, aguanta 1 s y baja en 3 s.'],
+    cues: ['La cadera no se despega del banco.', 'Si tira del glúteo o del nervio, acorta el recorrido de abajo.'],
+    video: 'lying leg curl technique' },
+  leg_ext: { name: 'Extensión de cuádriceps', type: 'str',
+    how: ['Sentado en el accesorio del banco, con el rodillo sobre los tobillos.',
+          'Estira las rodillas, aguanta 1 s arriba y baja en 3 s.'],
+    cues: ['Agárrate al banco para que no se levante la cadera.'],
+    video: 'leg extension proper form' },
+  suitcase: { name: 'Suitcase carry (paseo con una mancuerna)', type: 'str',
+    how: ['Coge una mancuerna pesada en una sola mano y camina erguido sin inclinarte hacia ella.'],
+    cues: ['Trabaja oblicuos y glúteo medio, muy útil para tu molestia.', 'Pasos cortos y tranquilos.'],
+    video: 'suitcase carry' },
+  deadbug: { name: 'Dead bug', type: 'str',
+    how: ['Boca arriba, con los brazos al techo y las rodillas a 90°.',
+          'Estira a la vez el brazo y la pierna contrarios sin que se despegue la zona lumbar. Espira al estirar.'],
+    cues: ['Lento: 3 s por repetición.'],
+    video: 'dead bug exercise' },
+  goblet: { name: 'Sentadilla goblet', type: 'str',
+    how: ['Mancuerna vertical pegada al pecho y pies algo más abiertos que la cadera.',
+          'Baja en 3 s, haz una pausa de 1 s abajo y sube fuerte.'],
+    cues: ['Rodillas en la dirección de los pies.', 'Pecho alto.'],
+    video: 'goblet squat technique' },
+  front_squat: { name: 'Sentadilla frontal', type: 'str', pr: 'frontsquat',
+    how: ['Barra en el rack frontal con los codos altos.',
+          'Baja controlando en 2–3 s y sube con fuerza manteniendo los codos arriba.'],
+    cues: ['Torso vertical.', 'Si notas el glúteo, para en paralelo.'],
+    video: 'front squat technique' },
+  hex_dl: { name: 'Peso muerto con barra hexagonal', type: 'str', pr: 'deadlift',
+    how: ['Colócate en el centro de la barra hexagonal. Usa las asas altas al principio.',
+          'Cadera atrás, pecho alto y espalda neutra. "Empuja el suelo" hasta quedar de pie.',
+          'Baja controlando, sin soltar la barra.'],
+    cues: ['Más rodilla y menos espalda que en el convencional, por eso es más amable.', 'NO sueltes la barra: hay vecinos.'],
+    alt: 'Si notas tirón: para, quita peso y no lo cambies por otra bisagra. Ese día haz hip thrust.',
+    video: 'trap bar deadlift technique' },
+  back_squat: { name: 'Sentadilla trasera', type: 'str', pr: 'backsquat',
+    how: ['Barra sobre los trapecios. Saca la barra del rack y da 2–3 pasos atrás.',
+          'Coge aire, aprieta el abdomen y baja en 2–3 s hasta el paralelo o un poco más.',
+          'Sube con fuerza.'],
+    cues: ['Descansa 3 min completos: el pinchazo de la otra vez fue con descansos cortos.', 'Rack de seguridad colocado.'],
+    video: 'back squat technique tutorial' },
+  bss: { name: 'Sentadilla búlgara', type: 'str',
+    how: ['Empeine de atrás apoyado en el banco y una mancuerna en cada mano.',
+          'Baja en vertical hasta que la rodilla de atrás casi toque el suelo y sube con la pierna de delante.'],
+    cues: ['Tronco un poco inclinado para que trabaje más el glúteo.'],
+    video: 'bulgarian split squat technique' },
+  db_rdl: { name: 'Peso muerto rumano con mancuernas', type: 'str',
+    how: ['Rodillas un poco dobladas. Lleva la cadera atrás deslizando las mancuernas por los muslos.',
+          'Baja hasta notar tensión en los isquios, más o menos hasta media tibia, y sube apretando el glúteo.'],
+    cues: ['Bajada en 3 s.', 'Rango corto al principio: si irradia, PARA.'],
+    video: 'dumbbell romanian deadlift form' },
+  incline_bench: { name: 'Press inclinado con barra', type: 'str', pr: 'bench',
+    how: ['Banco a 30° dentro del rack, con los seguros puestos.',
+          'Baja controlando en 3 s a la parte alta del pecho y empuja.'],
+    cues: ['Escápulas juntas.', 'Codos a 45°.'],
+    video: 'incline barbell bench press form' },
+  pulldown: { name: 'Jalón al pecho en polea', type: 'str',
+    how: ['En la polea alta del rack o en la multiestación. Agarre algo más ancho que los hombros.',
+          'Baja la barra a la parte alta del pecho llevando los codos hacia los bolsillos. Sube lento.'],
+    cues: ['Tronco quieto, ligeramente inclinado hacia atrás.', 'Estira del todo arriba.'],
+    video: 'lat pulldown technique' },
+  landmine_press: { name: 'Press landmine a una mano', type: 'str',
+    how: ['Barra en el landmine del rack, con el extremo a la altura del hombro.',
+          'De pie o de rodillas, empuja hacia arriba y adelante hasta estirar el brazo.'],
+    cues: ['El tronco no gira.', 'Muy amable para el hombro.'],
+    video: 'single arm landmine press' },
+  db_row: { name: 'Remo a una mano con mancuerna', type: 'str',
+    how: ['Rodilla y mano apoyadas en el banco, espalda plana.',
+          'Lleva la mancuerna hacia la cadera, aguanta 1 s y baja estirando del todo.'],
+    cues: ['Sin girar el tronco.'],
+    video: 'one arm dumbbell row form' },
+  dips: { name: 'Fondos en paralelas', type: 'str',
+    how: ['En la torre. Baja hasta que el hombro quede un poco por debajo del codo y sube.'],
+    cues: ['Tronco un poco inclinado.', 'Si molesta el hombro, reduce el rango.'],
+    video: 'parallel bar dips technique' },
+  ez_curl: { name: 'Curl con barra EZ', type: 'str',
+    how: ['De pie, con los codos pegados al cuerpo. Sube la barra sin balancearte y baja en 3 s.'],
+    cues: ['Sin impulso de cadera.'],
+    video: 'ez bar curl form' },
+  tri_push: { name: 'Extensión de tríceps en polea (cuerda)', type: 'str',
+    how: ['Polea alta con la cuerda y los codos pegados al cuerpo.',
+          'Estira los brazos separando la cuerda abajo. Vuelve lento.'],
+    cues: ['Los codos no se mueven.'],
+    video: 'tricep rope pushdown' },
+  lat_raise: { name: 'Elevaciones laterales', type: 'str',
+    how: ['Mancuernas ligeras. Sube los brazos hacia los lados hasta la altura de los hombros, con los codos un poco doblados.',
+          'Baja en 3 s.'],
+    cues: ['Sin impulso.', 'Los meñiques no suben por encima de los pulgares.'],
+    video: 'dumbbell lateral raise form' },
+  push_press: { name: 'Push press', type: 'str', pr: 'pushpress',
+    how: ['Barra en rack frontal. Haz un dip corto y vertical doblando 10–15 cm las rodillas.',
+          'Extiende fuerte las piernas y usa ese impulso para subir la barra. Termina con los brazos bloqueados.'],
+    cues: ['Explosivo: cada repetición a máxima velocidad.', 'El dip es vertical, la cadera no va hacia atrás.', 'Baja la barra controlando hasta los hombros: no la sueltes.'],
+    video: 'push press technique' },
+  trx_row: { name: 'Remo invertido en TRX', type: 'str',
+    how: ['Agarra las asas del TRX con el cuerpo inclinado hacia atrás y recto como una tabla.',
+          'Tira del pecho hacia las manos, aguanta 1 s y baja lento.'],
+    cues: ['Cuanto más horizontal, más difícil.'],
+    video: 'TRX row technique' },
+  deficit_pushup: { name: 'Flexiones en déficit', type: 'str',
+    how: ['Manos sobre dos discos o mancuernas para que el pecho baje más que en una flexión normal.',
+          'Baja en 2 s y sube fuerte.'],
+    cues: ['El cuerpo en línea recta.'],
+    video: 'deficit push ups' },
+  farmer: { name: 'Paseo del granjero', type: 'str',
+    how: ['Una mancuerna pesada en cada mano. Camina erguido con pasos cortos y rápidos.'],
+    cues: ['Hombros abajo y abdomen firme.'],
+    video: 'farmers carry form' },
+  sandbag_carry: { name: 'Sandbag bear hug carry', type: 'str',
+    how: ['Abraza el saco de 15 kg contra el pecho y camina.'],
+    cues: ['Recógelo desde una altura, por ejemplo del banco: no lo levantes del suelo con la espalda doblada.'],
+    video: 'sandbag bear hug carry' },
+  hpc: { name: 'Hang power clean', type: 'str', pr: 'powerclean',
+    how: ['Empieza de pie con la barra. Bájala a la mitad del muslo llevando la cadera atrás.',
+          'Extiende cadera, rodillas y tobillos de forma explosiva y recibe la barra en rack frontal en cuarto de sentadilla.'],
+    cues: ['Rápido y técnico, sin buscar el fallo.', 'NO dejes caer la barra: bájala controlando a los muslos.'],
+    video: 'hang power clean technique' },
+  side_plank: { name: 'Plancha lateral', type: 'str',
+    how: ['Codo bajo el hombro y el cuerpo recto. Sube la cadera y aguanta.'],
+    cues: ['La versión con la pierna de arriba levantada trabaja el glúteo medio.'],
+    video: 'side plank proper form' },
+  ab_wheel: { name: 'Rueda abdominal', type: 'str',
+    how: ['De rodillas, rueda hacia delante sin que la zona lumbar se hunda y vuelve tirando con el abdomen.'],
+    cues: ['Empieza con poco recorrido.'],
+    video: 'ab wheel rollout kneeling form' },
+  hlr: { name: 'Elevaciones de rodillas colgado', type: 'str',
+    how: ['Colgado de la barra o apoyado en la torre, sube las rodillas al pecho sin balanceo y baja lento.'],
+    cues: ['Si al subir la pierna notas presión en el glúteo, déjalo para más adelante.'],
+    video: 'hanging knee raise strict' },
+
+  // ---------- CARDIO ----------
+  z2: { name: 'Zona 2 (bici / elíptica)', type: 'cardio',
+    how: ['Ritmo en el que podrías mantener una conversación con frases completas.',
+          'Pulso orientativo de 125–145 ppm. Si tienes pulsómetro, intenta respirar solo por la nariz.',
+          'Elige la máquina que no moleste al glúteo: normalmente la bici Life Fitness o la elíptica.'],
+    cues: ['Es aburrido a propósito: es lo que más mejora el motor aeróbico.', 'Cadencia de 80–90 rpm en la bici.'],
+    video: 'zone 2 training explained' },
+  thr: { name: 'Umbral en elíptica', type: 'cardio',
+    how: ['Calienta 5 min.', 'Haz 3 bloques de 8 min a esfuerzo 7/10, "cómodamente duro", con 2 min suaves entre bloques.'],
+    cues: ['Puedes decir frases cortas, no conversar.', 'Pulso orientativo de 155–165 ppm.'],
+    video: 'threshold training explained' },
+  vo2: { name: 'VO2máx en bici', type: 'cardio',
+    how: ['Calienta 5 min progresivos.', 'Haz 5 × 3 min a esfuerzo 8–9/10 con 2 min muy suaves entre series.', 'Termina con 3 min suaves.'],
+    cues: ['Las series deben salir parecidas: si la 1.ª es brutal y la 5.ª no sale, empezaste demasiado fuerte.'],
+    video: 'VO2 max intervals 3 minutes cycling' },
+  run: { name: 'Correr por la calle', type: 'cardio',
+    how: ['Fase 1: todavía no. Adelantar la pierna con impacto es justo lo que te molesta.',
+          'Fase 2: carrera-caminata en llano, 10 × (1 min de trote suave + 1 min andando). Si va bien 2 veces, pasa a 2 min + 1 min.',
+          'Fase 3: Zona 2 corriendo 30–50 min, o los intervalos de umbral y VO2máx en la calle.'],
+    cues: ['Zancada corta y cadencia alta (unos 170 pasos/min): menos tirón en la parte de atrás de la pierna.',
+           'Superficie llana. Si notas presión en el glúteo al adelantar la pierna, termina andando y apúntalo.'],
+    video: 'running cadence short stride technique' },
+  walk_incline: { name: 'Caminar en cinta inclinada', type: 'cardio',
+    how: ['Inclinación del 8–12 % a 5–5,5 km/h.'],
+    cues: ['Si al adelantar la pierna notas presión en el glúteo, cambia a bici.'],
+    video: 'incline treadmill walking zone 2' },
+  metcon: { name: 'Metcon', type: 'cardio',
+    how: ['Lee el formato de la nota. Trabaja a ritmo exigente pero sostenible: esfuerzo 7–8/10.'],
+    cues: ['No es una competición: técnica limpia y sin dejar caer el peso.'],
+    video: 'EMOM workout explained' },
+};
+
+// ====== SESIONES ======
+// load: {pct, ref} (% de 1RM) o {kg} o texto. phases: fases en las que aparece.
+const P1 = [1], P2 = [2], P3 = [3], P23 = [2, 3], ALL = [1, 2, 3];
+
+const SESSIONS = [
+  { id: 'D1', title: 'Torso · Fuerza', sub: 'Banca, dominadas, press + Zona 2', blocks: [
+    { title: 'Movilidad activa', min: 12, items: [
+      { ex: 'shoulder_cars', dose: '2 × 3 por sentido', ph: ALL },
+      { ex: 'tspine_book', dose: '2 × 6 por lado', ph: ALL },
+      { ex: 'wall_slides', dose: '2 × 10', ph: ALL },
+      { ex: 'sciatic_slider', dose: '2 × 10 por pierna', ph: [1, 2] },
+      { ex: 'lat_hang', dose: '2 rondas', ph: ALL },
+    ]},
+    { title: 'Fuerza', min: 45, items: [
+      { ex: 'bench', sets: 4, reps: '6', load: { pct: .76, ref: 'bench' }, rest: 150, tempo: '3-1-X-0', rir: 2, ph: [1, 2] },
+      { ex: 'bench', sets: 5, reps: '5', load: { pct: .80, ref: 'bench' }, rest: 180, tempo: '3-1-X-0', rir: 2, ph: P3 },
+      { ex: 'wpullup', sets: 4, reps: '5', load: { txt: '+10 kg' }, rest: 150, tempo: '1-0-1-3', rir: 2, ph: ALL },
+      { ex: 'ohp', sets: 3, reps: '8', load: { pct: .65, ref: 'ohp' }, rest: 120, tempo: '2-0-X-0', rir: 2, ph: ALL, ss: 'C' },
+      { ex: 'cs_row', sets: 3, reps: '10', load: { kg: 20 }, rest: 90, tempo: '2-0-1-2', rir: 2, ph: ALL, ss: 'C' },
+      { ex: 'facepull', sets: 3, reps: '15', load: { txt: 'ligero' }, rest: 60, ph: ALL, ss: 'D' },
+      { ex: 'pallof', sets: 3, reps: '10/lado', load: { txt: 'moderado' }, rest: 60, ph: ALL, ss: 'D' },
+    ]},
+    { title: 'Cardio', min: 30, items: [
+      { ex: 'z2', dose: '30 min · bici', cardio: 30, ph: P1 },
+      { ex: 'z2', dose: '35 min · bici o elíptica', cardio: 35, ph: P23 },
+    ]},
+  ]},
+  { id: 'D2', title: 'Pierna · Glúteo', sub: 'Según fase + umbral', blocks: [
+    { title: 'Movilidad activa', min: 12, items: [
+      { ex: 'hip_cars', dose: '3 por sentido y lado', ph: ALL },
+      { ex: 'couch_active', dose: '1 × 30 s + 3 × 5 s por lado', ph: ALL },
+      { ex: 'ankle_ktw', dose: '2 × 10 por lado', ph: ALL },
+      { ex: 'tib_raises', dose: '2 × 15', ph: ALL },
+      { ex: 'glute_bridge', dose: '2 × 10 (3 s arriba)', ph: P1 },
+      { ex: 'cossack', dose: '2 × 5 por lado', ph: P23 },
+    ]},
+    { title: 'Fuerza', min: 45, items: [
+      { ex: 'hip_thrust', sets: 4, reps: '10', load: { kg: 60 }, rest: 120, tempo: '2-0-1-2', rir: 3, ph: P1, note: 'Sube 10 kg por semana si va sin dolor.' },
+      { ex: 'goblet', sets: 4, reps: '8', load: { kg: 20 }, rest: 120, tempo: '3-1-1-0', rir: 2, ph: P2, note: 'Si la goblet va limpia 2 sesiones, pasa a sentadilla frontal 4 × 5 al 60 %.' },
+      { ex: 'front_squat', sets: 4, reps: '5', load: { pct: .60, ref: 'frontsquat' }, rest: 150, tempo: '3-0-X-0', rir: 3, ph: P2, opt: true },
+      { ex: 'hex_dl', sets: 3, reps: '5', load: { pct: .55, ref: 'deadlift' }, rest: 150, tempo: '2-0-X-0', rir: 3, ph: P2 },
+      { ex: 'back_squat', sets: 4, reps: '5', load: { pct: .75, ref: 'backsquat' }, rest: 180, tempo: '3-0-X-0', rir: 2, ph: P3 },
+      { ex: 'hex_dl', sets: 4, reps: '4', load: { pct: .72, ref: 'deadlift' }, rest: 180, tempo: '2-0-X-0', rir: 2, ph: P3 },
+      { ex: 'stepup', sets: 3, reps: '8/pierna', load: { kg: 12 }, rest: 90, tempo: '1-0-1-2', rir: 3, ph: P1, ss: 'B' },
+      { ex: 'bss', sets: 3, reps: '8/pierna', load: { kg: 16 }, rest: 90, tempo: '3-0-1-0', rir: 2, ph: P23, ss: 'B' },
+      { ex: 'leg_curl', sets: 3, reps: '12', load: { txt: 'ajusta, RIR 2' }, rest: 75, tempo: '2-1-3-0', ph: ALL, ss: 'B' },
+      { ex: 'leg_ext', sets: 3, reps: '15', load: { txt: 'ajusta, RIR 2' }, rest: 60, tempo: '1-1-3-0', ph: ALL, ss: 'C' },
+      { ex: 'side_lying_abd', sets: 3, reps: '15/lado', load: { txt: 'peso corporal' }, rest: 45, ph: P1, ss: 'C' },
+      { ex: 'copenhagen', sets: 3, reps: '20 s/lado', load: { txt: 'peso corporal' }, rest: 45, ph: P23, ss: 'C' },
+      { ex: 'suitcase', sets: 4, reps: '30 m/mano', load: { kg: 20 }, rest: 60, ph: ALL },
+    ]},
+    { title: 'Cardio', min: 30, items: [
+      { ex: 'thr', dose: '5 min calentar + 3 × 8 min (RPE 7) / 2 min suave', cardio: 34, ph: ALL, note: 'En fase 3 puedes hacerlo corriendo en la calle.' },
+    ]},
+  ]},
+  { id: 'D3', title: 'Motor + Movilidad', sub: 'Zona 2 larga, movilidad larga y core', blocks: [
+    { title: 'Movilidad larga', min: 20, items: [
+      { ex: 'hip_9090', dose: '3 × 5 cambios + 3 s de lift-off', ph: ALL },
+      { ex: 'thoracic_bench', dose: '3 × 6 (3 s)', ph: ALL },
+      { ex: 'couch_active', dose: '2 × por lado', ph: ALL },
+      { ex: 'ankle_ktw', dose: '2 × 10 por lado', ph: ALL },
+      { ex: 'goblet_hold', dose: '3 × 30 s', ph: P23 },
+      { ex: 'shoulder_cars', dose: '2 × 3', ph: ALL },
+      { ex: 'sciatic_slider', dose: '2 × 10', ph: [1, 2] },
+    ]},
+    { title: 'Cardio', min: 50, items: [
+      { ex: 'z2', dose: '45 min (25 de bici + 20 de elíptica)', cardio: 45, ph: P1 },
+      { ex: 'z2', dose: '50 min (puedes meter 10 de cinta inclinada)', cardio: 50, ph: P23 },
+      { ex: 'run', dose: '10 × (1 min trote + 1 min andar) en la calle; resta ese tiempo de la bici', cardio: 20, ph: P2, opt: true },
+      { ex: 'run', dose: 'Zona 2 corriendo 40–50 min en la calle (sustituye a la bici)', cardio: 45, ph: P3, opt: true },
+    ]},
+    { title: 'Core', min: 15, items: [
+      { ex: 'deadbug', sets: 3, reps: '8/lado', load: { txt: 'peso corporal' }, rest: 45, ph: ALL, ss: 'A' },
+      { ex: 'side_plank', sets: 3, reps: '30 s/lado', load: { txt: 'peso corporal' }, rest: 45, ph: ALL, ss: 'A' },
+      { ex: 'bird_dog', sets: 2, reps: '6/lado', load: { txt: 'peso corporal' }, rest: 30, ph: P1, ss: 'A' },
+      { ex: 'ab_wheel', sets: 3, reps: '8', load: { txt: 'de rodillas' }, rest: 60, ph: P23, ss: 'A' },
+    ]},
+  ]},
+  { id: 'D4', title: 'Torso · Hipertrofia', sub: 'Volumen + VO2máx', blocks: [
+    { title: 'Movilidad activa', min: 10, items: [
+      { ex: 'shoulder_cars', dose: '2 × 3 por sentido', ph: ALL },
+      { ex: 'thoracic_bench', dose: '2 × 6', ph: ALL },
+      { ex: 'wall_slides', dose: '2 × 10', ph: ALL },
+    ]},
+    { title: 'Fuerza / hipertrofia', min: 48, items: [
+      { ex: 'incline_bench', sets: 4, reps: '8', load: { pct: .60, ref: 'bench' }, rest: 120, tempo: '3-0-1-0', rir: 2, ph: ALL },
+      { ex: 'pulldown', sets: 4, reps: '10', load: { kg: 55 }, rest: 90, tempo: '2-0-1-1', rir: 2, ph: ALL },
+      { ex: 'landmine_press', sets: 3, reps: '10/brazo', load: { txt: 'barra + 10–15 kg' }, rest: 75, ph: ALL, ss: 'C' },
+      { ex: 'db_row', sets: 3, reps: '12/brazo', load: { kg: 20 }, rest: 75, tempo: '2-0-1-1', ph: ALL, ss: 'C' },
+      { ex: 'dips', sets: 3, reps: 'máx − 2', load: { txt: 'peso corporal' }, rest: 75, ph: ALL, ss: 'D' },
+      { ex: 'ez_curl', sets: 3, reps: '10', load: { kg: 30 }, rest: 60, tempo: '1-0-1-3', ph: ALL, ss: 'D' },
+      { ex: 'lat_raise', sets: 3, reps: '15', load: { kg: 8 }, rest: 45, tempo: '1-0-1-3', ph: ALL, ss: 'E' },
+      { ex: 'tri_push', sets: 3, reps: '12', load: { txt: 'RIR 2' }, rest: 45, ph: ALL, ss: 'E' },
+    ]},
+    { title: 'Cardio', min: 30, items: [
+      { ex: 'vo2', dose: '5 min + 5 × 3 min (RPE 8–9) / 2 min + 3 min', cardio: 33, ph: ALL, note: 'En fase 3 puedes hacerlo corriendo (en cuesta suave es más amable para la pierna).' },
+    ]},
+  ]},
+  { id: 'D5', title: 'Atlético + Metcon', sub: 'Potencia, cargadas y condición', blocks: [
+    { title: 'Movilidad activa', min: 10, items: [
+      { ex: 'hip_cars', dose: '3 por sentido y lado', ph: ALL },
+      { ex: 'shoulder_cars', dose: '2 × 3', ph: ALL },
+      { ex: 'ankle_ktw', dose: '2 × 10', ph: ALL },
+      { ex: 'glute_bridge', dose: '2 × 10', ph: P1 },
+    ]},
+    { title: 'Potencia / fuerza', min: 30, items: [
+      { ex: 'push_press', sets: 5, reps: '3', load: { pct: .72, ref: 'pushpress' }, rest: 120, tempo: 'explosivo', rir: 3, ph: ALL },
+      { ex: 'hpc', sets: 5, reps: '3', load: { pct: .60, ref: 'powerclean' }, rest: 120, tempo: 'explosivo', rir: 3, ph: P2 },
+      { ex: 'hpc', sets: 5, reps: '2', load: { pct: .72, ref: 'powerclean' }, rest: 120, tempo: 'explosivo', rir: 2, ph: P3 },
+      { ex: 'trx_row', sets: 3, reps: '12', load: { txt: 'peso corporal' }, rest: 60, ph: ALL, ss: 'B' },
+      { ex: 'deficit_pushup', sets: 3, reps: '12', load: { txt: 'peso corporal' }, rest: 60, ph: ALL, ss: 'B' },
+      { ex: 'farmer', sets: 3, reps: '40 m', load: { kg: 20 }, rest: 60, ph: ALL },
+    ]},
+    { title: 'Metcon', min: 25, items: [
+      { ex: 'metcon', dose: 'EMOM 20 (5 rondas): 1) bici 45 s fuerte · 2) 10 push press con mancuernas de 15 kg · 3) 12 remos en TRX · 4) sandbag bear hug carry 30 m', cardio: 20, ph: P1 },
+      { ex: 'metcon', dose: 'AMRAP 18: 12 cal de bici · 10 thrusters con mancuernas de 15 kg · 8 step-overs al cajón · 6 flexiones', cardio: 18, ph: P2 },
+      { ex: 'metcon', dose: 'For time (cap 20): 5 rondas de 15 cal de bici · 10 snatch alternos con mancuerna de 20 kg · 10 thrusters con mancuernas de 15 kg · 8 burpees sin salto', cardio: 20, ph: P3 },
+    ]},
+    { title: 'Vuelta a la calma', min: 15, items: [
+      { ex: 'z2', dose: '12–15 min muy suave', cardio: 15, ph: ALL },
+    ]},
+  ]},
+];
+
+const PHASES = {
+  1: { name: 'Fase 1 · Proteger', desc: 'Sin sentadilla trasera, peso muerto pesado ni saltos. Glúteo, cuádriceps e isquios con ejercicios que no irritan el nervio. Torso y cardio a tope.' },
+  2: { name: 'Fase 2 · Reintroducir', desc: 'Vuelven la sentadilla goblet o frontal y el peso muerto con barra hexagonal al 55–60 %. Cargadas desde colgado ligeras.' },
+  3: { name: 'Fase 3 · Construir', desc: 'Sentadilla trasera y barra hexagonal al 72–80 %, cargadas más pesadas y metcon completo. Aquí puedes volver al CrossFit sin limitaciones.' },
+};
+
+const CRITERIA = {
+  2: ['7 días seguidos sin dolor que baje por la pierna',
+      'Caminar rápido 20 min sin presión en el glúteo al adelantar la pierna',
+      'Hip thrust 4 × 10 con 80 kg sin molestia al día siguiente',
+      'Sentado con la pierna estirada y el pie hacia ti: sin presión en el glúteo'],
+  3: ['2 semanas en la fase 2 sin recaídas',
+      'Peso muerto con barra hexagonal 3 × 5 al 60 % sin síntomas en 24 h',
+      'Sentadilla frontal o goblet 4 × 5 sin molestia',
+      'Peso muerto rumano con 2 × 20 kg, 3 × 10, sin tirón'],
+};
+
+// Marcas más altas extraídas de AimHarder (ejercicio, marca, reps, fecha)
+const AIM = [
+ ['Deadlift','180 kg','1','24/09/2024'],['Back squat','142,5 kg','1','17/08/2026'],['Sumo deadlift','130 kg','5','12/08/2026'],
+ ['Front squat','105 kg','2','25/09/2024'],['Power clean','105 kg','1','09/04/2025'],['Squat clean','100 kg','2','03/02/2025'],
+ ['Clean and jerk','95 kg','1','18/03/2026'],['Power clean and jerk','95 kg','1','02/07/2024'],['Hang squat clean and jerk','90 kg','1','18/05/2026'],
+ ['Pause front squat','90 kg','3','19/06/2024'],['Back rack lunges','85 kg','10','30/07/2026'],['Hang power clean','80 kg','1','04/09/2024'],
+ ['Clean high pull','80 kg','1','04/09/2024'],['Push jerk','75 kg','3','06/07/2026'],['Push press','75 kg','2','06/07/2026'],
+ ['Bench press','75 kg','8','23/12/2025'],['Snatch','70 kg','1','14/08/2026'],['Hang power snatch','70 kg','1','24/02/2025'],
+ ['Overhead squat','70 kg','1','24/02/2025'],['Shoulder press','70 kg','1','07/11/2025'],['Thruster','70 kg','1','12/06/2024'],
+ ['Hang cluster','70 kg','2','22/04/2026'],['Hang squat snatch','65 kg','1','15/10/2024'],['Power snatch','60 kg','3','21/06/2024'],
+ ['Cluster','60 kg','5','13/01/2026'],['Muscle snatch','58 kg','1','24/10/2026'],['Strict press','52 kg','1','Perfil'],
+ ['Alternating DB snatch','27,5 kg','1','Perfil'],['American KB swing','24 kg','1','Perfil'],['Weighted pull-ups','+16 kg','5','30/06/2026'],
+];
+
+// ====== NUTRICIÓN ======
+// Valores aproximados por 100 g (en crudo/seco salvo que se indique)
+const FOODS = {
+  pollo:      { n: 'Pechuga de pollo (cruda)', k: 110, p: 23, c: 0, g: 1.5 },
+  pavo:       { n: 'Pechuga de pavo (cruda)', k: 105, p: 24, c: 0, g: 1 },
+  ternera:    { n: 'Ternera magra / picada 5 % (cruda)', k: 130, p: 21, c: 0, g: 5 },
+  lomo:       { n: 'Lomo de cerdo (crudo)', k: 150, p: 21, c: 0, g: 7 },
+  salmon:     { n: 'Salmón (crudo)', k: 200, p: 20, c: 0, g: 13 },
+  merluza:    { n: 'Merluza / lubina / pescado blanco (crudo)', k: 85, p: 18, c: 0, g: 1.5 },
+  espada:     { n: 'Pez espada (crudo)', k: 115, p: 20, c: 0, g: 4 },
+  caballa:    { n: 'Caballa (cruda)', k: 200, p: 19, c: 0, g: 13 },
+  pulpo:      { n: 'Pulpo cocido', k: 82, p: 15, c: 2, g: 1 },
+  berberechos:{ n: 'Berberechos al natural (lata)', k: 75, p: 15, c: 2, g: 1 },
+  bacon:      { n: 'Bacon', k: 300, p: 15, c: 1, g: 27 },
+  gelatina:   { n: 'Gelatina sin azúcar (1 u = 100 g)', k: 7, p: 1.5, c: 0, g: 0 },
+  bebavena:   { n: 'Bebida de avena sin azúcar', k: 42, p: 0.5, c: 7, g: 1.3 },
+  cuscus:     { n: 'Cuscús (en seco)', k: 360, p: 12, c: 72, g: 1.5 },
+  noquis:     { n: 'Ñoquis de patata', k: 150, p: 3.5, c: 32, g: 0.5 },
+  guisantes:  { n: 'Guisantes (congelados)', k: 80, p: 5.4, c: 10, g: 0.4 },
+  edamame:    { n: 'Edamame', k: 120, p: 11, c: 9, g: 5 },
+  chia:       { n: 'Semillas de chía', k: 490, p: 17, c: 8, g: 31 },
+  cereales:   { n: 'Cereales sin azúcar / papilla 8 cereales', k: 375, p: 8, c: 80, g: 2 },
+  gazpacho:   { n: 'Gazpacho', k: 40, p: 1, c: 4, g: 2.5 },
+  pepinillos: { n: 'Pepinillos', k: 15, p: 0.5, c: 2, g: 0.2 },
+  atun:       { n: 'Atún al natural (lata, escurrido)', k: 105, p: 24, c: 0, g: 1 },
+  gambas:     { n: 'Gambas / langostinos (pelados)', k: 85, p: 19, c: 0, g: 1 },
+  huevo:      { n: 'Huevo (1 u ≈ 60 g)', k: 145, p: 12.5, c: 0.7, g: 10 },
+  claras:     { n: 'Claras de huevo', k: 50, p: 11, c: 0.7, g: 0.2 },
+  skyr:       { n: 'Skyr / yogur proteico natural', k: 62, p: 10.5, c: 4, g: 0.2 },
+  batido0:    { n: 'Queso fresco batido 0 %', k: 46, p: 8, c: 3.5, g: 0.2 },
+  burgos:     { n: 'Queso fresco tipo Burgos light', k: 75, p: 12, c: 3, g: 1.5 },
+  leche:      { n: 'Leche semidesnatada', k: 46, p: 3.2, c: 4.7, g: 1.6 },
+  whey:       { n: 'Proteína whey (1 cacito ≈ 30 g)', k: 380, p: 78, c: 6, g: 6 },
+  jamon:      { n: 'Jamón serrano', k: 240, p: 30, c: 0, g: 13 },
+  pavof:      { n: 'Fiambre de pavo (>90 %)', k: 100, p: 20, c: 2, g: 1.5 },
+  queso:      { n: 'Queso curado / semicurado', k: 400, p: 26, c: 0, g: 33 },
+  mozza:      { n: 'Mozzarella light', k: 165, p: 20, c: 1, g: 9 },
+  arroz:      { n: 'Arroz (en seco)', k: 355, p: 7, c: 78, g: 0.6 },
+  pasta:      { n: 'Pasta (en seco)', k: 355, p: 12.5, c: 71, g: 1.5 },
+  avena:      { n: 'Copos de avena', k: 375, p: 13, c: 60, g: 7 },
+  pan:        { n: 'Pan integral', k: 245, p: 10, c: 41, g: 3.5 },
+  tortillaw:  { n: 'Tortilla de trigo (wrap, 1 u ≈ 60 g)', k: 300, p: 8.5, c: 50, g: 7 },
+  patata:     { n: 'Patata (cruda)', k: 77, p: 2, c: 17, g: 0.1 },
+  boniato:    { n: 'Boniato (crudo)', k: 86, p: 1.6, c: 20, g: 0.1 },
+  quinoa:     { n: 'Quinoa (en seco)', k: 365, p: 14, c: 64, g: 6 },
+  garbanzos:  { n: 'Garbanzos cocidos (bote, escurridos)', k: 120, p: 7, c: 16, g: 2.5 },
+  lentejas:   { n: 'Lentejas cocidas (bote, escurridas)', k: 115, p: 9, c: 17, g: 0.4 },
+  tortitas:   { n: 'Tortitas de arroz (1 u ≈ 8 g)', k: 385, p: 8, c: 80, g: 3 },
+  platano:    { n: 'Plátano (sin piel)', k: 90, p: 1.1, c: 21, g: 0.3 },
+  manzana:    { n: 'Manzana', k: 52, p: 0.3, c: 12, g: 0.2 },
+  rojos:      { n: 'Frutos rojos', k: 50, p: 1, c: 10, g: 0.3 },
+  naranja:    { n: 'Naranja / mandarina', k: 47, p: 0.9, c: 11, g: 0.1 },
+  kiwi:       { n: 'Kiwi', k: 61, p: 1.1, c: 14, g: 0.5 },
+  verdura:    { n: 'Verduras variadas / ensalada', k: 30, p: 1.8, c: 5, g: 0.3 },
+  brocoli:    { n: 'Brócoli', k: 34, p: 2.8, c: 5, g: 0.4 },
+  tomate:     { n: 'Tomate', k: 20, p: 0.9, c: 3.5, g: 0.2 },
+  tomatefr:   { n: 'Tomate frito / triturado', k: 75, p: 1.5, c: 10, g: 3 },
+  aceite:     { n: 'Aceite de oliva (1 cda ≈ 10 g)', k: 884, p: 0, c: 0, g: 100 },
+  aguacate:   { n: 'Aguacate', k: 160, p: 2, c: 2, g: 15 },
+  nueces:     { n: 'Nueces / frutos secos', k: 650, p: 15, c: 7, g: 65 },
+  cacahuete:  { n: 'Crema de cacahuete 100 %', k: 590, p: 25, c: 12, g: 50 },
+  choco:      { n: 'Chocolate negro 85 %', k: 600, p: 10, c: 20, g: 50 },
+  hummus:     { n: 'Hummus', k: 250, p: 8, c: 14, g: 18 },
+  miel:       { n: 'Miel', k: 304, p: 0.3, c: 82, g: 0 },
+  soja:       { n: 'Salsa de soja', k: 55, p: 8, c: 5, g: 0 },
+  leche_coco: { n: 'Leche de coco light', k: 75, p: 0.7, c: 2, g: 7 },
+  cerveza:    { n: 'Cerveza (caña ≈ 200 g)', k: 43, p: 0.5, c: 3.5, g: 0 },
+};
+
+// Objetivos (35 años, 1,75 m, 77–79 kg, 5 días/semana de 90 min)
+// Mantenimiento estimado ≈ 2.750–2.850 kcal → déficit moderado (~400 kcal/día de media)
+const TARGETS = {
+  train: { name: 'Día de entreno', k: 2450, p: 165, c: 280, g: 75 },
+  rest:  { name: 'Día de descanso', k: 2100, p: 165, c: 190, g: 75 },
+};
+
+// Menú semanal tipo, con tus platos (Excel) y la estructura de tu plan de TC Nutrition
+// [alimento, gramos]
+const DESAYUNO_SALADO = [['pan', 60], ['aceite', 5], ['huevo', 100], ['jamon', 50], ['naranja', 180]];
+const ENTRENO = [['platano', 200], ['whey', 30], ['bebavena', 350]];
+const MENU = [
+  { day: 'Lunes', type: 'train', meals: [
+    { n: 'Desayuno · 08:00', items: DESAYUNO_SALADO },
+    { n: 'Comida · 14:30', r: 'arrozpollo', items: [['arroz', 100], ['pollo', 200], ['verdura', 200], ['aceite', 10], ['manzana', 180]] },
+    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
+    { n: 'Cena · 21:30', r: 'revuelto', items: [['huevo', 180], ['guisantes', 150], ['jamon', 40], ['pan', 60], ['aceite', 5], ['gelatina', 200]] },
+  ]},
+  { day: 'Martes', type: 'train', meals: [
+    { n: 'Desayuno · 08:00', r: 'oats', items: [['avena', 60], ['skyr', 125], ['leche', 120], ['chia', 10], ['whey', 20], ['rojos', 80], ['nueces', 15]] },
+    { n: 'Comida · 14:30', r: 'noodles', items: [['arroz', 90], ['pollo', 200], ['verdura', 200], ['soja', 15], ['aceite', 10], ['kiwi', 150]] },
+    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
+    { n: 'Cena · 21:30', r: 'espada', items: [['espada', 200], ['cuscus', 60], ['verdura', 200], ['aceite', 10], ['gelatina', 200]] },
+  ]},
+  { day: 'Miércoles', type: 'train', meals: [
+    { n: 'Desayuno · 08:00', items: DESAYUNO_SALADO },
+    { n: 'Comida · 14:30', r: 'enslentejas', items: [['lentejas', 250], ['huevo', 60], ['pavof', 80], ['verdura', 200], ['aceite', 10], ['naranja', 180]] },
+    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
+    { n: 'Cena · 21:30', r: 'fajitas', items: [['tortillaw', 120], ['ternera', 160], ['verdura', 150], ['tomatefr', 50], ['mozza', 50], ['gelatina', 200]] },
+  ]},
+  { day: 'Jueves', type: 'train', meals: [
+    { n: 'Desayuno · 08:00', r: 'porridge', items: [['avena', 70], ['leche', 300], ['whey', 20], ['nueces', 15]] },
+    { n: 'Comida · 14:30', r: 'enspasta', items: [['pasta', 90], ['atun', 120], ['huevo', 60], ['verdura', 200], ['aceite', 10], ['manzana', 180]] },
+    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
+    { n: 'Cena · 21:30', r: 'lubina', items: [['merluza', 250], ['patata', 300], ['verdura', 200], ['tomatefr', 50], ['aceite', 10], ['gelatina', 200]] },
+  ]},
+  { day: 'Viernes', type: 'train', meals: [
+    { n: 'Desayuno · 08:00', items: DESAYUNO_SALADO },
+    { n: 'Comida · 14:30', r: 'carbonara', items: [['pasta', 100], ['huevo', 120], ['jamon', 40], ['bacon', 10], ['queso', 10], ['verdura', 150], ['naranja', 180]] },
+    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
+    { n: 'Cena · 21:30', r: 'pizza', items: [['tortillaw', 120], ['mozza', 60], ['pavof', 110], ['tomatefr', 60], ['verdura', 100], ['aceite', 5], ['gelatina', 200]] },
+  ]},
+  { day: 'Sábado', type: 'rest', meals: [
+    { n: 'Desayuno · 09:30', items: DESAYUNO_SALADO },
+    { n: 'Comida · 14:30', r: 'albondigas', items: [['ternera', 180], ['patata', 250], ['tomatefr', 100], ['verdura', 100], ['aceite', 10]] },
+    { n: 'Merienda o recena', items: [['batido0', 250], ['whey', 15], ['rojos', 100], ['choco', 20]] },
+    { n: 'Cena · 21:30', r: 'sandwich', items: [['pan', 100], ['pollo', 160], ['bacon', 20], ['tomate', 80], ['pepinillos', 30], ['verdura', 80]] },
+  ]},
+  { day: 'Domingo', type: 'rest', meals: [
+    { n: 'Desayuno · 09:30', items: DESAYUNO_SALADO },
+    { n: 'Comida · 14:30', items: [['verdura', 300], ['lomo', 200], ['patata', 200], ['aceite', 10], ['gazpacho', 250]] },
+    { n: 'Merienda o recena', items: [['batido0', 250], ['whey', 15], ['manzana', 180]] },
+    { n: 'Cena · 21:30 (picoteo)', r: 'pulpo', items: [['pulpo', 220], ['patata', 150], ['verdura', 200], ['aceite', 10], ['edamame', 80], ['gelatina', 200]] },
+  ]},
+];
+
+const RECIPES = {
+  oats: { n: 'Overnight de avena, yogur, chía y proteína', t: '5 min (la noche antes)',
+    steps: ['En un táper: avena, skyr, leche, chía y la whey. Remueve bien.', 'Nevera toda la noche.', 'Por la mañana: frutos rojos por encima.'] },
+  porridge: { n: 'Porridge de avena proteico', t: '8 min',
+    steps: ['Disuelve la whey en la leche fría (si la echas en caliente se apelmaza).', 'Cuece la avena en esa leche a fuego medio 4–5 min, removiendo.', 'Canela y frutos secos por encima.'] },
+  arrozpollo: { n: 'Arroz con pollo y verduras', t: '25 min',
+    steps: ['Dora el pollo en dados con la mitad del aceite y resérvalo.', 'Sofríe pimiento, cebolla, judía verde o lo que tengas con el resto del aceite.', 'Añade el arroz, nácaralo 1 min, luego el pollo, pimentón, una pizca de azafrán o colorante y el doble de agua o caldo.', '15–18 min a fuego medio. Reposa 5 min.'] },
+  noodles: { n: 'Noodles de arroz con pollo y verduras', t: '15 min',
+    steps: ['Hidrata o cuece los noodles de arroz según el paquete.', 'Saltea a fuego fuerte el pollo en tiras con el aceite y añade las verduras (pimiento, zanahoria, cebolla, col).', 'Añade los noodles y la soja (más jengibre y ajo si te gusta) y saltea 2 min.'] },
+  revuelto: { n: 'Revuelto de guisantes con jamón', t: '10 min',
+    steps: ['Saltea cebolla en el aceite, añade los guisantes y 3–4 min tapado.', 'Añade el jamón en taquitos y luego los huevos batidos.', 'Remueve a fuego bajo hasta que cuaje jugoso. Con el pan.'] },
+  espada: { n: 'Pez espada con cuscús y verduras', t: '15 min',
+    steps: ['Cuscús: el mismo volumen de agua hirviendo con sal, tapa 5 min y suéltalo con un tenedor.', 'Verduras salteadas o al vapor.', 'Pez espada a la plancha muy caliente, 2 min por lado, con limón y ajo y perejil.'] },
+  enslentejas: { n: 'Ensalada de lentejas con huevo y pavo', t: '10 min',
+    steps: ['Lentejas de bote lavadas y escurridas.', 'Mézclalas con tomate, cebolla, pepino, el huevo duro y el pavo en tacos.', 'Aliña con el aceite, vinagre, sal y comino.'] },
+  fajitas: { n: 'Fajitas de carne picada', t: '15 min',
+    steps: ['Saltea pimiento y cebolla en tiras.', 'Añade la carne picada con comino, pimentón y ajo en polvo.', 'Añade el tomate y deja reducir 3 min.', 'Rellena las tortillas, pon la mozzarella y 1 min a la sartén para que funda.'] },
+  enspasta: { n: 'Ensalada de pasta con atún', t: '15 min',
+    steps: ['Cuece la pasta y enfríala con agua.', 'Mézclala con el atún, huevo duro, tomate cherry, maíz o pepino y cebolla.', 'Aliña con el aceite y vinagre. Aguanta 2 días en la nevera.'] },
+  lubina: { n: 'Lubina con patatas y pisto', t: '30 min',
+    steps: ['Patata en rodajas al microondas 6–8 min tapada, o cocida.', 'Pisto: calabacín, pimiento y cebolla pochados con el tomate.', 'Lubina a la plancha, primero por el lado de la piel, 3–4 min.'] },
+  carbonara: { n: 'Carbonara (versión que cuadra)', t: '15 min',
+    steps: ['Cuece la pasta y guarda un vaso del agua de cocción.', 'Dora el bacon y el jamón en la sartén sin aceite.', 'Bate los huevos con el queso rallado y pimienta.', 'Con el fuego apagado, mezcla la pasta con el bacon, el huevo y un chorrito del agua. Remueve hasta que quede cremosa: no debe cuajar.'] },
+  pizza: { n: 'Pizza de tortilla', t: '12 min',
+    steps: ['Base de tortilla de trigo con tomate, mozzarella, pavo, champiñón y pimiento.', 'Horno a 220 °C 8–10 min, hasta que quede crujiente.', 'Orégano por encima.'] },
+  albondigas: { n: 'Albóndigas en salsa con patatas al horno', t: '35 min',
+    steps: ['Picada con ajo, perejil, sal y 1 huevo si quieres. Forma las albóndigas.', 'Dóralas en la sartén con la mitad del aceite y añade el tomate. 15 min tapadas.', 'Patatas en gajos con el resto del aceite y pimentón, 25 min a 200 °C. Igual que las fritas, pero cuadra.'] },
+  sandwich: { n: 'Sándwich de pollo, bacon y tomate', t: '10 min',
+    steps: ['Pollo en filetes finos a la plancha con sal y pimienta.', 'Bacon crujiente en la sartén sin aceite.', 'Pan tostado con lechuga, tomate, pepinillos, el pollo y el bacon. Mostaza si te gusta.'] },
+  pulpo: { n: 'Pulpo a la gallega rápido (cena de picoteo)', t: '10 min',
+    steps: ['Pulpo cocido (envasado) cortado en rodajas y templado 1 min en el microondas.', 'Base de patata cocida en rodajas, encima el pulpo, el aceite, pimentón y sal gorda.', 'De acompañamiento: ensalada y edamame con sal.'] },
+};
+
+</script>
+<script>
+// ====== ESTADO Y ALMACENAMIENTO ======
+const LS_KEY = 'gym-camacho-v1';
+let S = { phase: 1, prOverrides: {}, crit: {}, draft: null, sel: null };
+let LOGS = [];
+let F = { days:{}, custom:{} };
+let foodSub='reg', foodDate=null, editIdx=-1;
+let backend = 'pending';   // 'db' | 'local'
+let DB = null, UID = null;
+let tab = 'hoy';
+
+function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function lsGet(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'null');}catch(e){return null;}}
+function lsSet(v){try{localStorage.setItem(LS_KEY, JSON.stringify(v));}catch(e){}}
+function setStatus(t){document.getElementById('status').textContent=t;}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),1800);}
+
+// Guardado del estado (una escritura cada vez, con espera)
+let saveTimer=null, saving=false, saveAgain=false, lastStateJson='', lastFoodJson='';
+function logsCol(){ return DB.doc('data/users/'+UID+'/logs').collection('items'); }
+function saveState(){ clearTimeout(saveTimer); saveTimer=setTimeout(flushState,700); }
+let fTimer=null, fSaving=false, fAgain=false;
+function saveFood(){ lsSet({S, LOGS, F}); clearTimeout(fTimer); fTimer=setTimeout(flushFood,700); }
+async function flushFood(){
+  fTimer=null;
+  if(backend!=='db') return;
+  if(fSaving){ fAgain=true; return; }
+  fSaving=true;
+  try{ const j=JSON.stringify(F); await DB.doc('data/users/'+UID+'/food').set(JSON.parse(j)); lastFoodJson=j; setStatus('☁️ guardado'); }
+  catch(e){ setStatus('⚠️ no se pudo guardar'); }
+  fSaving=false; if(fAgain){ fAgain=false; flushFood(); }
+}
+async function flushState(){
+  saveTimer=null;
+  lsSet({S, LOGS, F});
+  if(backend!=='db') return;
+  if(saving){ saveAgain=true; return; }
+  saving=true;
+  try{ const j=JSON.stringify(S); await DB.doc('data/users/'+UID+'/state').set(JSON.parse(j)); lastStateJson=j; setStatus('☁️ guardado'); }
+  catch(e){ setStatus('⚠️ no se pudo guardar'); }
+  saving=false;
+  if(saveAgain){ saveAgain=false; flushState(); }
+}
+async function addLog(log){
+  if(backend!=='db'){ LOGS.push(log); lsSet({S, LOGS, F}); return; }
+  LOGS=LOGS.filter(x=>x.id!==log.id).concat([log]); lsSet({S, LOGS, F});
+  await logsCol().doc(log.id).set(log);
+}
+async function delLog(id){
+  if(backend!=='db'){ LOGS=LOGS.filter(l=>l.id!==id); lsSet({S, LOGS, F}); render(); return; }
+  LOGS=LOGS.filter(l=>l.id!==id); lsSet({S, LOGS, F}); render();
+  await logsCol().doc(id).delete();
+}
+
+async function init(){
+  // Primero lo local, por si no hay conexión
+  const l = lsGet(); if(l){ S = Object.assign(S, l.S||{}); LOGS = l.LOGS||[]; if(l.F) F = Object.assign(F, l.F); }
+  render();
+  if(STANDALONE){
+    backend='local'; setStatus('📱 guardado en este móvil');
+    try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+    if('serviceWorker' in navigator && location.protocol.startsWith('http')){ try{ navigator.serviceWorker.register('sw.js'); }catch(e){} }
+    render(); return;
+  }
+  let db=null, user=null, uid=null;
+  try{
+    if(window.claude && claude.use){
+      [db, user] = await Promise.all([claude.use('db'), claude.use('user')]);
+      if(db && user) uid = await user.id();
+    }
+  }catch(e){ uid=null; }
+  if(!db || !uid){ backend='local'; setStatus('💾 solo en este dispositivo'); render(); return; }
+  DB = db; UID = uid;
+  try{ logsCol(); }catch(e){ backend='local'; setStatus('⚠️ error de almacenamiento'); render(); return; }
+  backend = 'db';
+  setStatus('sincronizando…');
+  const ready={state:false, food:false, logs:false};
+  let allReady=false;
+  const done=k=>{ ready[k]=true; if(!allReady && ready.state&&ready.food&&ready.logs){ allReady=true; clearTimeout(to); setStatus('☁️ sincronizado'); safeRender(); } };
+  const to = setTimeout(()=>setStatus('⚠️ sin conexión: lo que hagas se guarda al reconectar'), 10000);
+  const fail=()=>{ setStatus('⚠️ error de sincronización'); };
+  // Estado (sesión en curso, fase, marcas)
+  DB.doc('data/users/'+UID+'/state').onSnapshot(snap=>{
+    if(snap.metadata.hasPendingWrites || saving || saveTimer) { if(!snap.metadata.fromCache) done('state'); return; }
+    if(snap.exists){
+      const remote = JSON.stringify(snap.data());
+      if(remote!==lastStateJson){
+        S = Object.assign({ phase:1, prOverrides:{}, crit:{}, draft:null, sel:null }, JSON.parse(remote));
+        lastStateJson = remote; lsSet({S, LOGS, F});
+        safeRender();
+      }
+    } else if(!snap.metadata.fromCache && !ready.state && l && l.S){ flushState(); }
+    if(!snap.metadata.fromCache) done('state');
+  }, fail);
+  // Comida
+  DB.doc('data/users/'+UID+'/food').onSnapshot(snap=>{
+    if(snap.metadata.hasPendingWrites || fSaving || fTimer) { if(!snap.metadata.fromCache) done('food'); return; }
+    if(snap.exists){
+      const remote = JSON.stringify(snap.data());
+      if(remote!==lastFoodJson){
+        F = Object.assign({days:{},custom:{}}, JSON.parse(remote));
+        lastFoodJson = remote; lsSet({S, LOGS, F});
+        safeRender();
+      }
+    } else if(!snap.metadata.fromCache && !ready.food && l && l.F && Object.keys(l.F.days||{}).length){ flushFood(); }
+    if(!snap.metadata.fromCache) done('food');
+  }, fail);
+  // Historial de sesiones
+  logsCol().onSnapshot(qs=>{
+    const remote = qs.docs.map(d=>d.data()).filter(Boolean).map(x=>JSON.parse(JSON.stringify(x)));
+    if(!qs.metadata.fromCache && !ready.logs && l && l.LOGS && l.LOGS.length){
+      // sube sesiones que solo estaban en este dispositivo
+      const have=new Set(remote.map(x=>x.id));
+      l.LOGS.filter(x=>x && x.id && !have.has(x.id)).forEach(x=>{ remote.push(x); logsCol().doc(x.id).set(x).catch(()=>{}); });
+    }
+    const changed = JSON.stringify(remote)!==JSON.stringify(LOGS);
+    LOGS = remote; lsSet({S, LOGS, F});
+    if(changed) safeRender();
+    if(!qs.metadata.fromCache) done('logs');
+  }, fail);
+}
+// No redibujar mientras escribes: se aplaza hasta que sueltas el campo
+let pendingRender=false;
+function safeRender(){ if(isTyping()){ pendingRender=true; return; } pendingRender=false; render(); }
+document.addEventListener('focusout', ()=>{ if(!pendingRender) return; setTimeout(()=>{ if(pendingRender && !isTyping()){ pendingRender=false; render(); } }, 300); });
+function isTyping(){const a=document.activeElement;return !!a && (a.tagName==='INPUT'||a.tagName==='TEXTAREA'||a.tagName==='SELECT');}
+
+// ====== CÁLCULOS ======
+function rm(ref){ const o=S.prOverrides&&S.prOverrides[ref]; return o ? +o : BASE_PRS[ref].rm; }
+function r25(x){ return Math.round(x/2.5)*2.5; }
+function loadTxt(load){
+  if(!load) return '';
+  if(load.pct) return r25(rm(load.ref)*load.pct)+' kg';
+  if(load.kg) return load.kg+' kg';
+  return load.txt||'';
+}
+function loadKg(load){ if(!load) return ''; if(load.pct) return r25(rm(load.ref)*load.pct); if(load.kg) return load.kg; return ''; }
+function e1rm(kg,reps){ kg=+kg; reps=parseInt(reps); if(!kg||!reps) return 0; return reps===1?kg:kg*(1+reps/30); }
+function fmt(n){ return (Math.round(n*10)/10).toString().replace('.',','); }
+function weekNo(){ const d0=new Date(START_DATE+'T00:00:00'); const d=new Date(); return Math.max(1, Math.floor((d-d0)/(7*864e5))+1); }
+function isDeload(){ return weekNo()%5===0; }
+function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fdate(s){ const [y,m,d]=s.split('-'); return d+'/'+m+'/'+y; }
+
+function itemsFor(sess){
+  return sess.blocks.map(b=>({...b, items:b.items.filter(it=>it.ph.includes(S.phase))})).filter(b=>b.items.length);
+}
+function itemKey(sess,bi,ii){ return sess.id+'.'+bi+'.'+ii; }
+function nextSession(){
+  const sorted=[...LOGS].sort((a,b)=>(a.ts||0)-(b.ts||0));
+  if(!sorted.length) return 'D1';
+  const last=sorted[sorted.length-1].session;
+  const i=SESSIONS.findIndex(s=>s.id===last);
+  return SESSIONS[(i+1)%SESSIONS.length].id;
+}
+function lastFor(exId){
+  const sorted=[...LOGS].sort((a,b)=>(b.ts||0)-(a.ts||0));
+  for(const l of sorted){ const e=(l.entries||[]).find(e=>e.ex===exId && e.sets && e.sets.some(s=>s.kg||s.reps)); if(e) return {date:l.date, sets:e.sets}; }
+  return null;
+}
+
+// ====== BORRADOR DE SESIÓN ======
+function ensureDraft(sid){
+  if(S.draft && S.draft.session===sid) return S.draft;
+  const sess=SESSIONS.find(s=>s.id===sid);
+  const d={ session:sid, date:today(), phase:S.phase, items:{}, pain:0, rpe:7, notes:'' };
+  sess.blocks.forEach((b,bi)=>b.items.forEach((it,ii)=>{
+    if(!it.ph.includes(S.phase)) return;
+    const ex=EX[it.ex], k=ex.type+':'+it.ex+':'+bi+':'+ii;
+    if(it.sets){
+      const sg=suggest(it); const kg=sg.kg;
+      d.items[k]={ ex:it.ex, sug:sg.kg, hint:sg.hint, sets:Array.from({length: isDeload()? Math.max(2,it.sets-1): it.sets},()=>({kg:kg, reps:'', done:false})) };
+    } else d.items[k]={ ex:it.ex, done:false, min: it.cardio||'' };
+  }));
+  S.draft=d; return d;
+}
+// ====== PROGRESIÓN AUTOMÁTICA ======
+const LOWER=new Set(['hip_thrust','hex_dl','back_squat','front_squat']);
+const DBX=new Set(['cs_row','db_row','stepup','bss','lat_raise','goblet','farmer','suitcase']);
+function suggest(it){
+  const base=loadKg(it.load);
+  if(base==='' ) return {kg:'', hint:''};
+  const target=parseInt(it.reps); const last=lastFor(it.ex);
+  if(!last || !target) return {kg:base, hint:''};
+  const sets=last.sets.filter(s=>+s.kg && parseInt(s.reps));
+  if(!sets.length) return {kg:base, hint:''};
+  const lastKg=Math.max(...sets.map(s=>+s.kg));
+  const top=sets.filter(s=>+s.kg===lastKg);
+  const allHit = sets.length>=Math.max(2,it.sets-1) && top.every(s=>parseInt(s.reps)>=target);
+  const isDb=DBX.has(it.ex), inc=isDb?2:(LOWER.has(it.ex)?5:2.5), cap=isDb?20:Infinity;
+  if(isDeload()) { const k=isDb?lastKg:r25(lastKg*0.9); return {kg:k, hint:'Semana de descarga: '+fmt(k)+' kg, sin apretar.'}; }
+  if(allHit){
+    if(lastKg+inc>cap) return {kg:lastKg, hint:'Completaste todo, pero no hay mancuernas más pesadas: haz 1–2 repeticiones más por serie.'};
+    let k=lastKg+inc; if(it.load&&it.load.pct&&base>k) k=base;
+    return {kg:k, hint:'↑ +'+fmt(k-lastKg)+' kg: la última vez completaste todas las series.'};
+  }
+  return {kg:lastKg, hint:'= Repite '+fmt(lastKg)+' kg: la última vez no salieron todas las repeticiones.'};
+}
+function draftKey(it,bi,ii){ return EX[it.ex].type+':'+it.ex+':'+bi+':'+ii; }
+
+// ====== RENDER ======
+function render(){
+  document.getElementById('phChip').textContent=PHASES[S.phase].name;
+  document.getElementById('wkChip').textContent='Semana '+weekNo()+' de 12'+(isDeload()?' · descarga':weekNo()===12?' · test de marcas':'');
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.t===tab));
+  const v=document.getElementById('view');
+  const y=window.scrollY;
+  v.innerHTML = tab==='hoy'?vHoy(): tab==='prog'?vProg(): tab==='hist'?vHist(): tab==='prs'?vPrs(): tab==='food'?vFood(): tab==='coach'?vCoach(): vGuia();
+  if(backend==='local' && !STANDALONE) v.insertAdjacentHTML('afterbegin', localBanner());
+  if(STANDALONE && tab==='hoy' && backupDue()) v.insertAdjacentHTML('afterbegin', '<div class="note" style="margin-bottom:10px">💾 Hace más de 7 días que no haces copia de seguridad. Ve a <b>Marcas → Copia de seguridad</b>.</div>');
+  if(backend==='db' && document.getElementById('status').textContent.startsWith('⚠️')) v.insertAdjacentHTML('afterbegin', '<div class="alt" style="margin-bottom:10px">⚠️ Problema de conexión con la nube. No cierres la app hasta que arriba ponga ☁️.</div>');
+  bind();
+  window.scrollTo(0,y);
+}
+
+function exDetail(ex, it){
+  let h='';
+  if(it && it.note) h+=`<div class="note">📌 ${esc(it.note)}</div>`;
+  h+=`<div class="lbl">Cómo se hace</div><ol>${ex.how.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`;
+  if(ex.cues) h+=`<div class="lbl">Claves</div><ul>${ex.cues.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+  if(ex.avoid) h+=`<div class="lbl">Errores típicos</div><ul>${ex.avoid.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`;
+  if(it && it.tempo && it.tempo!=='explosivo') h+=`<div class="lbl">Tempo ${esc(it.tempo)}</div><div class="small muted">${tempoTxt(it.tempo)}</div>`;
+  if(it && it.tempo==='explosivo') h+=`<div class="lbl">Velocidad</div><div class="small muted">Cada repetición a máxima velocidad. Si se ralentiza, corta la serie.</div>`;
+  if(ex.alt) h+=`<div class="alt">⚠️ Si molesta: ${esc(ex.alt)}</div>`;
+  h+=`<div class="row" style="margin-top:10px"><a class="btn sm" href="${yt(ex.video)}" target="_blank" rel="noopener">▶️ Ver vídeos de técnica</a></div>`;
+  return h;
+}
+function tempoTxt(t){
+  const p=t.split('-'); if(p.length!==4) return '';
+  const w=x=>x==='X'?'explosivo':x+' s';
+  return `Bajada ${w(p[0])} · pausa abajo ${w(p[1])} · subida ${w(p[2])} · pausa arriba ${w(p[3])}`;
+}
+
+function vHoy(){
+  const sid = S.sel || nextSession();
+  const nxt = nextSession();
+  const sess=SESSIONS.find(s=>s.id===sid);
+  const d=ensureDraft(sid);
+  let h=`<div class="sessions">${SESSIONS.map(s=>`<button data-sess="${s.id}" class="${s.id===sid?'on':''} ${s.id===nxt?'next':''}"><b>${s.id} · ${esc(s.title)}</b><span>${esc(s.sub)}</span></button>`).join('')}</div>`;
+  const total=Object.values(d.items).reduce((a,x)=>a+(x.sets?x.sets.length:1),0);
+  const done=Object.values(d.items).reduce((a,x)=>a+(x.sets?x.sets.filter(s=>s.done).length:(x.done?1:0)),0);
+  h+=`<div class="card"><div class="row"><b>${sess.id} · ${esc(sess.title)}</b><span class="spacer"></span><span class="muted small">${done}/${total} completado</span></div>
+      <div class="prog"><i style="width:${total?Math.round(done/total*100):0}%"></i></div>
+      ${isDeload()?'<div class="note">Semana de descarga: una serie menos en todo y cardio suave. Sin buscar marcas.</div>':''}
+      ${S.phase<3?'<div class="small muted" style="margin-top:6px">Semáforo de dolor: 0–2 sigue · 3–4 baja carga o rango · 5 o más, o si vuelve a irradiar: para ese ejercicio. Detalles en la Guía.</div>':''}</div>`;
+  itemsFor(sess).forEach((b,bi0)=>{
+    // bi/ii se refieren al bloque original para que las claves sean estables
+    const ob=sess.blocks.findIndex(x=>x.title===b.title);
+    h+=`<div class="blockh"><h3>${esc(b.title)}</h3><small>~${b.min} min</small></div>`;
+    b.items.forEach(it=>{
+      const ii=sess.blocks[ob].items.indexOf(it);
+      const ex=EX[it.ex]; const k=draftKey(it,ob,ii); const di=d.items[k]; if(!di) return;
+      const isDone = di.sets? di.sets.every(s=>s.done) : di.done;
+      let rx='';
+      if(it.sets){
+        const L=(di.sug!==undefined&&di.sug!=='')? fmt(+di.sug)+' kg' : loadTxt(it.load);
+        rx=`<b>${di.sets.length} × ${esc(it.reps)}</b>${L?' · <b>'+esc(L)+'</b>':''}${it.rir!=null?' · RIR '+it.rir:''}${it.tempo?' · tempo '+esc(it.tempo):''}${it.rest?' · desc. '+fmtT(it.rest):''}`;
+        if(it.load&&it.load.pct&&!di.hint) rx+=` <span class="small">(${Math.round(it.load.pct*100)} % de ${fmt(rm(it.load.ref))})</span>`;
+        if(di.hint) rx+=`<div class="small" style="color:var(--warn);margin-top:2px">${esc(di.hint)}</div>`;
+      } else rx=esc(it.dose||'');
+      const last = it.sets? lastFor(it.ex):null;
+      h+=`<div class="ex ${isDone?'done':''}" data-k="${k}">
+        <div class="top" data-open="${k}">
+          ${it.ss?`<span class="ss">${esc(it.ss)}</span>`:''}
+          <div style="flex:1"><div class="nm">${esc(ex.name)}${it.opt?' <span class="chip">opcional</span>':''}</div><div class="rx">${rx}</div>
+          ${last?`<div class="last">Última vez (${fdate(last.date)}): ${last.sets.filter(s=>s.kg||s.reps).map(s=>(s.kg?fmt(+s.kg)+'×':'')+(s.reps||'–')).join(' · ')}</div>`:''}</div>
+          ${it.sets?'':`<span class="ck ${di.done?'on':''}" data-ck="${k}">✓</span>`}
+        </div>
+        <div class="det">${exDetail(ex,it)}</div>`;
+      if(it.sets){
+        h+=`<div class="sets">${di.sets.map((s,si)=>`<div class="set ${s.done?'ok':''}">
+            <span class="ck ${s.done?'on':''}" data-set="${k}|${si}" data-rest="${it.rest||0}">✓</span>
+            <label>Serie ${si+1}</label>
+            <input inputmode="decimal" placeholder="kg" value="${esc(s.kg)}" data-in="${k}|${si}|kg">
+            <input inputmode="numeric" placeholder="reps (${esc(it.reps)})" value="${esc(s.reps)}" data-in="${k}|${si}|reps">
+          </div>`).join('')}
+          <div class="row"><button class="btn sm ghost" data-addset="${k}">+ serie</button>${it.rest?`<button class="btn sm ghost" data-timer="${it.rest}">⏱ ${fmtT(it.rest)}</button>`:''}</div></div>`;
+      } else if(ex.type==='cardio'){
+        h+=`<div class="cardio"><span class="small muted">Minutos hechos</span><input inputmode="numeric" value="${esc(di.min)}" data-cmin="${k}"></div>`;
+      }
+      h+=`</div>`;
+    });
+  });
+  h+=`<div class="card finish">
+    <label>Dolor de glúteo/pierna durante o después de la sesión: <b id="painV">${d.pain}</b>/10</label>
+    <input type="range" min="0" max="10" value="${d.pain}" id="pain"><div class="pain"><span>0 nada</span><span>3–4 vigilar</span><span>≥5 parar</span></div>
+    <label>Esfuerzo global de la sesión (RPE): <b id="rpeV">${d.rpe}</b>/10</label>
+    <input type="range" min="1" max="10" value="${d.rpe}" id="rpe">
+    <label class="row" style="justify-content:space-between">Notas <button class="btn sm" id="mic" type="button">🎤 Dictar</button></label><textarea id="notes" placeholder="Sensaciones, sustituciones, qué molestó…">${esc(d.notes)}</textarea>
+    <div class="row" style="margin-top:12px"><button class="btn pri" id="finish">✅ Terminar y guardar en el historial</button><button class="btn ghost" id="reset">Vaciar</button></div>
+  </div>`;
+  return h;
+}
+function fmtT(s){ return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+
+function vProg(){
+  let h=`<h2>Fase actual</h2><div class="row">${[1,2,3].map(p=>`<button class="chip ${S.phase===p?'on':''}" data-phase="${p}">${esc(PHASES[p].name)}</button>`).join('')}</div>
+    <div class="card">${esc(PHASES[S.phase].desc)}</div>`;
+  if(S.phase<3){
+    const nx=S.phase+1, list=CRITERIA[nx];
+    const okCount=list.filter((_,i)=>S.crit[nx+'.'+i]).length;
+    h+=`<div class="card"><b>Para pasar a la ${esc(PHASES[nx].name)}</b> <span class="muted small">(${okCount}/${list.length})</span>
+      ${list.map((c,i)=>`<div class="critem"><span class="ck ${S.crit[nx+'.'+i]?'on':''}" data-crit="${nx}.${i}">✓</span><span>${esc(c)}</span></div>`).join('')}
+      ${okCount===list.length?`<button class="btn pri" data-phase="${nx}">Pasar a ${esc(PHASES[nx].name)}</button>`:'<div class="small muted">Cuando estén todos marcados podrás subir de fase. Si un fisio te da otro criterio, haz caso al fisio.</div>'}</div>`;
+  }
+  h+=`<h2>Semana tipo</h2><div class="card"><table>
+    <tr><th>Día</th><th>Sesión</th><th>Cardio</th></tr>
+    <tr><td>Lunes</td><td>D1 · Torso fuerza</td><td>Zona 2, 30–35 min</td></tr>
+    <tr><td>Martes</td><td>D2 · Pierna y glúteo</td><td>Umbral 3 × 8 min</td></tr>
+    <tr><td>Miércoles</td><td>D3 · Motor + movilidad</td><td>Zona 2, 45–50 min</td></tr>
+    <tr><td>Jueves</td><td>D4 · Torso hipertrofia</td><td>VO2máx 5 × 3 min</td></tr>
+    <tr><td>Viernes</td><td>D5 · Atlético + metcon</td><td>Metcon + 15 min suave</td></tr>
+    <tr><td>Fin de semana</td><td colspan="2">Descanso, o paseo o bici suave</td></tr></table>
+    <div class="small muted" style="margin-top:8px">La app te propone siempre la siguiente sesión en orden, así que si empiezas un sábado no pasa nada.</div></div>
+  <h2>Duración del plan: 12 semanas</h2><div class="card small"><ul>
+    <li><b>Semanas 1–4:</b> bloque 1, con las cargas subiendo poco a poco.</li>
+    <li><b>Semana 5:</b> descarga (una serie menos y cardio suave).</li>
+    <li><b>Semanas 6–9:</b> bloque 2, con cargas más altas e intervalos más largos.</li>
+    <li><b>Semana 10:</b> descarga.</li>
+    <li><b>Semana 11:</b> última semana fuerte.</li>
+    <li><b>Semana 12:</b> test. Saca nuevas marcas de banca, dominadas, sentadilla y peso muerto (este último solo si estás en fase 3), un test de 20 min en bici y peso y perímetro de cintura. Con esos datos se monta el siguiente bloque.</li></ul>
+    <p>Las <b>fases</b> (proteger, reintroducir, construir) no van por semanas fijas: dependen de tu glúteo. Lo normal sería 2–3 semanas en la fase 1, 2–3 en la fase 2 y el resto en la fase 3, pero lo deciden los criterios.</p></div>
+  <h2>Días de CrossFit</h2><div class="card small">
+    <p>Si vas al CrossFit, ese día cuenta como una sesión del plan:</p>
+    <ul><li>1 día de CrossFit: sustituye al <b>D5</b>.</li><li>2 días: sustituyen al <b>D5</b> y al <b>D2</b>. Mantén D1, D3 y D4.</li>
+    <li>Mientras estés en fase 1 o 2, escala en el box: nada de sentadilla trasera ni peso muerto pesados, ni saltos al cajón, broad jumps o burpees con salto. Rema o haz bici en lugar de correr si notas el glúteo. Y descansos completos entre series pesadas.</li>
+    <li>No hagas pierna pesada dos días seguidos (D2 + CrossFit de pierna).</li></ul>
+    <p>Registra el día en el historial con la nota "CrossFit".</p>
+    <button class="btn sm" id="cfLog">+ Registrar un día de CrossFit</button></div>
+  <h2>Cómo progresar</h2><div class="card small"><ul>
+    <li><b>Doble progresión:</b> si completas todas las series con las repeticiones marcadas y te sobran 2 o más (RIR ≥ 2), sube la próxima vez: +2,5 kg en ejercicios de torso, +5 kg en pierna.</li>
+    <li><b>Automático:</b> al empezar una sesión, la app mira lo que hiciste la última vez en cada ejercicio. Si completaste todas las series, te propone subir: +2,5 kg en torso, +5 kg en pierna y +2 kg en mancuernas. Si no, repites el peso. Lo verás en amarillo debajo de cada ejercicio.</li>
+    <li><b>Cargas de los ejercicios básicos:</b> se calculan con tus marcas (pestaña Marcas). Si actualizas una marca, todo se recalcula.</li>
+    <li><b>Cardio:</b> Zona 2 +5 min por semana hasta 60 min el D3. Intervalos: añade 1 serie cada 2 semanas (hasta 6 × 3 min y 4 × 8 min).</li>
+    <li><b>Cada 5.ª semana, descarga:</b> la app quita una serie automáticamente.</li>
+    <li><b>Definir sin perder fuerza:</b> mantener cargas pesadas (RIR 2) mientras bajas un poco las calorías. Lo vemos con la alimentación como siguiente paso.</li></ul></div>`;
+  return h;
+}
+
+function vHist(){
+  const sorted=[...LOGS].sort((a,b)=>(b.ts||0)-(a.ts||0));
+  let h=`<h2>Sesiones</h2>`;
+  if(!sorted.length) h+=`<div class="empty">Aún no hay sesiones. Termina una en "Hoy" y aparecerá aquí.</div>`;
+  sorted.forEach(l=>{
+    const vol=(l.entries||[]).reduce((a,e)=>a+(e.sets||[]).reduce((b,s)=>b+(+s.kg||0)*(parseInt(s.reps)||0),0),0);
+    const col=l.pain>=5?'var(--bad)':l.pain>=3?'var(--warn)':'var(--acc)';
+    const sess=SESSIONS.find(s=>s.id===l.session);
+    h+=`<div class="card log" data-log="${esc(l.id)}"><div class="sum"><b>${fdate(l.date)}</b><span>${esc(l.session)}${sess?' · '+esc(sess.title):''}</span><span class="spacer"></span>
+      <span class="chip"><span class="dot" style="background:${col}"></span>dolor ${l.pain??'–'}</span><span class="chip">RPE ${l.rpe??'–'}</span>${vol?`<span class="chip">${Math.round(vol)} kg vol.</span>`:''}</div>
+      <div class="body">${(l.entries||[]).filter(e=>e.sets&&e.sets.some(s=>s.kg||s.reps)).map(e=>`<div class="small"><b>${esc(EX[e.ex]?EX[e.ex].name:e.ex)}</b>: ${e.sets.filter(s=>s.kg||s.reps).map(s=>(s.kg?fmt(+s.kg)+'×':'')+(s.reps||'–')).join(' · ')}</div>`).join('')}
+      ${(l.cardio||[]).map(c=>`<div class="small">🚴 ${esc(EX[c.ex]?EX[c.ex].name:c.ex)}: ${esc(c.min)} min</div>`).join('')}
+      ${l.notes?`<div class="small muted" style="margin-top:6px">📝 ${esc(l.notes)}</div>`:''}
+      <button class="btn sm danger" style="margin-top:8px" data-dellog="${esc(l.id)}">Borrar</button></div></div>`;
+  });
+  const exIds=[...new Set(LOGS.flatMap(l=>(l.entries||[]).filter(e=>e.sets&&e.sets.some(s=>+s.kg&&parseInt(s.reps))).map(e=>e.ex)))];
+  h+=`<h2>Progreso por ejercicio</h2>`;
+  if(!exIds.length){ h+=`<div class="empty">Cuando registres series con kg y reps verás aquí tu evolución (1RM estimado).</div>`; return h; }
+  const cur=S.histEx && exIds.includes(S.histEx)? S.histEx : exIds[0];
+  h+=`<select class="sel" id="histEx">${exIds.map(id=>`<option value="${id}" ${id===cur?'selected':''}>${esc(EX[id]?EX[id].name:id)}</option>`).join('')}</select>`;
+  const pts=[...LOGS].sort((a,b)=>(a.ts||0)-(b.ts||0)).map(l=>{
+    const e=(l.entries||[]).find(e=>e.ex===cur); if(!e) return null;
+    let best=null; e.sets.forEach(s=>{const v=e1rm(s.kg,s.reps); if(v&&(!best||v>best.v)) best={v,kg:+s.kg,reps:parseInt(s.reps)};});
+    return best?{date:l.date,...best}:null;
+  }).filter(Boolean);
+  h+=`<div class="card">${chart(pts)}<table><tr><th>Fecha</th><th>Mejor serie</th><th class="n">1RM est.</th></tr>
+    ${pts.slice().reverse().map(p=>`<tr><td>${fdate(p.date)}</td><td>${fmt(p.kg)} kg × ${p.reps}</td><td class="n">${fmt(p.v)}</td></tr>`).join('')}</table></div>`;
+  return h;
+}
+function chart(pts){
+  if(pts.length<2) return '<div class="small muted">Con 2 o más sesiones verás la gráfica.</div>';
+  const W=600,H=160,P=28; const vs=pts.map(p=>p.v); let mn=Math.min(...vs), mx=Math.max(...vs); if(mx-mn<5){mx+=2.5;mn-=2.5;}
+  const x=i=>P+i*(W-2*P)/(pts.length-1), y=v=>H-P-(v-mn)/(mx-mn)*(H-2*P);
+  const d=pts.map((p,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(p.v).toFixed(1)).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Evolución del 1RM estimado">
+    <line x1="${P}" x2="${W-P}" y1="${H-P}" y2="${H-P}" stroke="#2b322d"/>
+    <text x="${P}" y="${y(mx)-6}">${fmt(mx)}</text><text x="${P}" y="${H-P+14}">${fmt(mn)}</text>
+    <path d="${d}" fill="none" stroke="#9be15d" stroke-width="2.5" stroke-linejoin="round"/>
+    ${pts.map((p,i)=>`<circle cx="${x(i)}" cy="${y(p.v)}" r="3.5" fill="#9be15d"><title>${fdate(p.date)} · ${fmt(p.v)} kg</title></circle>`).join('')}</svg>`;
+}
+
+function vPrs(){
+  // mejor 1RM estimado registrado para ejercicios con referencia
+  const best={};
+  LOGS.forEach(l=>(l.entries||[]).forEach(e=>{const ref=EX[e.ex]&&EX[e.ex].pr; if(!ref||e.ex==='incline_bench'||e.ex==='hpc') return; (e.sets||[]).forEach(s=>{const v=e1rm(s.kg,s.reps); if(v>(best[ref]||0)) best[ref]=v;});}));
+  let h=`<h2>Marcas que calculan las cargas</h2><div class="card"><table><tr><th>Ejercicio</th><th class="n">1RM usado</th><th></th></tr>
+    ${Object.entries(BASE_PRS).map(([k,p])=>`<tr><td>${esc(p.name)}<div class="small muted">${esc(S.prOverrides[k]?'editado por ti':p.src)}</div>${best[k]&&best[k]>rm(k)?`<div class="small" style="color:var(--acc)">Nuevo estimado en tus registros: ${fmt(best[k])} kg <button class="btn sm" data-useprbest="${k}|${r25(best[k])}">usar</button></div>`:''}</td>
+      <td class="n"><input data-pr="${k}" value="${rm(k)}" inputmode="decimal" style="width:76px;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:5px;text-align:right"></td>
+      <td>${S.prOverrides[k]?`<button class="btn sm ghost" data-prreset="${k}">↺</button>`:''}</td></tr>`).join('')}</table>
+    <div class="small muted" style="margin-top:8px">Si cambias una cifra, todas las cargas en % se recalculan. El 1RM estimado usa la fórmula de Epley: kg × (1 + reps/30).</div></div>
+  <h2>Tus marcas de AimHarder</h2><div class="card"><table><tr><th>Ejercicio</th><th class="n">Marca</th><th class="n">Reps</th><th>Fecha</th></tr>
+  ${AIM.map(r=>`<tr><td>${esc(r[0])}</td><td class="n">${esc(r[1])}</td><td class="n">${esc(r[2])}</td><td class="small">${esc(r[3])}</td></tr>`).join('')}</table></div>`;
+  h+=vData();
+  return h;
+}
+
+// ====== COPIA DE SEGURIDAD ======
+const BK_KEY='gym-camacho-lastbackup';
+function lastBackup(){ try{ return +localStorage.getItem(BK_KEY)||0; }catch(e){ return 0; } }
+function backupDue(){ const hasData=LOGS.length||Object.keys(F.days||{}).length; return hasData && Date.now()-lastBackup()>7*864e5; }
+function exportJson(){ return JSON.stringify({app:'gym-camacho', v:1, exported:new Date().toISOString(), S, LOGS, F}); }
+function vData(){
+  const lb=lastBackup();
+  return `<h2>Copia de seguridad</h2><div class="card small">
+    <p>${STANDALONE?'Tus datos viven solo en este iPhone. Haz una copia de vez en cuando (la app te avisa cada 7 días) y guárdala en Archivos o iCloud Drive.':'Saca una copia de tus datos para pasarlos a la versión independiente de la app.'}</p>
+    <p class="muted">Última copia: ${lb? new Date(lb).toLocaleDateString('es-ES')+' '+new Date(lb).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : 'nunca'} · ${LOGS.length} sesiones · ${Object.keys(F.days||{}).length} días de comida</p>
+    <div class="row">${STANDALONE?'<button class="btn pri" id="bkExport">⬇️ Exportar copia</button>':''}<button class="btn ${STANDALONE?'':'pri'}" id="bkCopy">📋 Copiar datos</button>${STANDALONE?'<button class="btn" id="bkImport">⬆️ Importar copia</button>':''}</div>
+    ${STANDALONE?'<input type="file" id="bkFile" accept=".json,application/json,text/plain" style="display:none">':''}
+    <div id="bkArea" style="display:none;margin-top:10px"><textarea id="bkText" style="min-height:120px;font-size:11px"></textarea>
+      <div class="row" style="margin-top:6px">${STANDALONE?'<button class="btn sm pri" id="bkPaste">Importar lo pegado</button>':''}<span class="muted">${STANDALONE?'Pega aquí los datos copiados desde la otra versión.':'Selecciona todo el texto y cópialo.'}</span></div></div>
+  </div>`;
+}
+function importData(txt){
+  let d; try{ d=JSON.parse(txt); }catch(e){ alert('Ese archivo o texto no es una copia válida.'); return; }
+  if(!d || d.app!=='gym-camacho'){ alert('Ese archivo no es una copia de esta app.'); return; }
+  if(!confirm('Esto reemplaza los datos de este móvil por los de la copia ('+(d.LOGS||[]).length+' sesiones). ¿Seguir?')) return;
+  S=Object.assign({ phase:1, prOverrides:{}, crit:{}, draft:null, sel:null }, d.S||{}); LOGS=d.LOGS||[]; F=Object.assign({days:{},custom:{}}, d.F||{});
+  lsSet({S, LOGS, F}); try{ localStorage.setItem(BK_KEY, String(Date.now())); }catch(e){}
+  render(); toast('Datos importados');
+}
+function bindData(v){
+  const ex=document.getElementById('bkExport'); if(!document.getElementById('bkCopy')) return;
+  if(ex) ex.onclick=async()=>{
+    const json=exportJson(); const name='gym-camacho-'+today()+'.json';
+    let ok=false;
+    try{
+      const file=new File([json], name, {type:'application/json'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:'Copia gimnasio'}); ok=true; }
+    }catch(e){ if(e && e.name==='AbortError') return; }
+    if(!ok){ try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([json],{type:'application/json'})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); ok=true; }catch(e){} }
+    if(ok){ try{ localStorage.setItem(BK_KEY, String(Date.now())); }catch(e){} toast('Copia exportada'); render(); }
+    else showArea(json);
+  };
+  document.getElementById('bkCopy').onclick=async()=>{
+    const json=exportJson();
+    try{ await navigator.clipboard.writeText(json); toast('Datos copiados'); try{ localStorage.setItem(BK_KEY, String(Date.now())); }catch(e){} }
+    catch(e){ showArea(json); }
+  };
+  const im=document.getElementById('bkImport'); if(im){
+    const fi=document.getElementById('bkFile');
+    im.onclick=()=>{ showArea(''); fi.click(); };
+    fi.onchange=()=>{ const f=fi.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>importData(r.result); r.readAsText(f); };
+    document.getElementById('bkPaste').onclick=()=>importData(document.getElementById('bkText').value);
+  }
+}
+function showArea(txt){ const a=document.getElementById('bkArea'); a.style.display='block'; const t=document.getElementById('bkText'); t.value=txt; if(txt){ t.focus(); t.select(); } }
+
+function vGuia(){
+  return `<h2>Cómo leer cada ejercicio</h2><div class="card small"><ul>
+  <li><b>4 × 6</b>: 4 series de 6 repeticiones.</li>
+  <li><b>RIR 2</b> (repeticiones en reserva): termina la serie cuando creas que podrías hacer 2 más con buena técnica. No se va al fallo: así ganas fuerza sin acumular tanta fatiga, que es justo lo que interesa mientras defines.</li>
+  <li><b>Tempo 3-1-X-0</b>: segundos de bajada, pausa abajo, subida y pausa arriba. <b>X</b> = explosivo, lo más rápido que puedas manteniendo el control. En casi todo: <b>bajada lenta y subida rápida</b>.</li>
+  <li><b>Letras (B, C, D…)</b>: ejercicios con la misma letra van en <b>superserie</b>. Haces una serie de uno, otra del otro y luego descansas. Ahorra tiempo.</li>
+  <li><b>Desc. 2:30</b>: descanso entre series. Pulsa ✓ en la serie y el temporizador arranca solo. En sentadilla y peso muerto respeta el descanso completo.</li>
+  <li><b>%</b>: porcentaje de tu 1RM (máximo a una repetición). Lo calcula la app a partir de tus marcas.</li>
+  <li><b>RPE</b>: esfuerzo percibido del 1 al 10.</li></ul></div>
+  <h2>Cardio</h2><div class="card small"><ul>
+  <li><b>Zona 2</b>: puedes hablar en frases completas. Unas 125–145 ppm a tus 35 años. Construye la base aeróbica: es lo que más mejora el cardio a medio plazo.</li>
+  <li><b>Umbral</b>: esfuerzo 7/10, "cómodamente duro". Solo frases cortas.</li>
+  <li><b>VO2máx</b>: esfuerzo 8–9/10. Sube el techo aeróbico. Se nota mucho en los metcons.</li>
+  <li>Máquinas: 2 bicis Life Fitness, 1 bici Decathlon, elíptica y cinta. No hay remo, ski ni assault bike, así que la bici hace ese papel.</li></ul></div>
+  <h2>Movilidad (no son estiramientos)</h2><div class="card small"><p>La movilidad mejora al hacer fuerza en el final del rango. Por eso hay CARs (círculos lentos con tensión), lift-offs (levantar una pierna en el rango máximo) y PAILs/RAILs (empujar contra el estiramiento y luego tirar hacia él). Hazlos lentos y con tensión: no es calentar por calentar.</p></div>
+  <h2>Semáforo del dolor (fases 1–2)</h2><div class="card small"><ul>
+  <li>🟢 <b>0–2/10</b>: sigue normal.</li>
+  <li>🟡 <b>3–4/10</b> que se calma en menos de 24 h: se puede, pero baja la carga o el rango la siguiente vez.</li>
+  <li>🔴 <b>5 o más</b>, o vuelve a irradiar por la pierna: deja ese ejercicio ese día y cámbialo por uno que no moleste (hip thrust, puente o extensión de cuádriceps).</li>
+  <li>Ve al médico si aparecen <b>hormigueo, adormecimiento o pérdida de fuerza</b> reales en la pierna o el pie, o un dolor que no mejora en 2 semanas. Y ve a urgencias si notas pérdida de sensibilidad en la zona genital o problemas para orinar.</li>
+  <li>Lo ideal es que un fisio valore la zona: este plan es conservador, pero no sustituye una exploración.</li></ul></div>
+  ${STANDALONE?`<h2>Usarla en el iPhone</h2><div class="card small"><ol style="margin:0 0 0 18px;padding:0">
+  <li>Abre la dirección de la app en <b>Safari</b>.</li>
+  <li>Pulsa <b>Compartir</b> y luego <b>"Añadir a pantalla de inicio"</b>.</li>
+  <li>Ábrela siempre desde ese icono. Los datos se guardan en el móvil, dentro de la app del icono. Si la abres en Safari normal, verás otros datos.</li>
+  <li>Funciona sin internet y sin Claude.</li>
+  <li>Haz una <b>copia de seguridad</b> de vez en cuando (Marcas → Copia de seguridad). Si borras el icono o cambias de móvil, la importas y lo recuperas todo.</li></ol></div>`:`<h2>Usarla en el iPhone</h2><div class="card small"><ol style="margin:0 0 0 18px;padding:0">
+  <li>Abre el <b>enlace de la app</b> (el de claude.ai que te pasé, no el archivo .html) en <b>Safari</b>.</li>
+  <li>Inicia sesión en Claude con tu cuenta si te lo pide. Hace falta para que se guarden tus datos.</li>
+  <li>Pulsa <b>Compartir</b> (el cuadrado con la flecha) y luego <b>"Añadir a pantalla de inicio"</b>.</li>
+  <li>Te queda un icono como si fuera una app. Lo que marques se guarda en tu cuenta y lo ves igual en el ordenador.</li></ol>
+  <p>Arriba a la derecha tiene que poner <b>☁️ sincronizado</b>. Si pone otra cosa, los datos solo están en ese dispositivo.</p></div>`}
+  <h2>Gimnasio de la comunidad</h2><div class="card small"><ul>
+  <li>Hay un cartel que pide no soltar pesas ni discos: bajada siempre controlada, también en las cargadas.</li>
+  <li>La polea del rack aguanta como máximo 100 kg.</li>
+  <li>Mancuernas hasta 20 kg. Para más carga en pierna: barra hexagonal, barra olímpica o sandbag.</li></ul></div>`;
+}
+
+// ====== COMIDA ======
+function localBanner(){
+  return `<div class="alt" style="margin-bottom:10px">⚠️ <b>Ahora mismo no se guarda en la nube.</b> Si has abierto el archivo desde WhatsApp o Archivos, lo que marques se pierde al cerrarlo. Ábrela desde el enlace de Claude en Safari, con tu sesión iniciada. Está explicado en Guía → "Usarla en el iPhone".</div>`;
+}
+function allFoods(){ return Object.assign({}, FOODS, F.custom||{}); }
+function macros(items){
+  const A=allFoods(), t={k:0,p:0,c:0,g:0};
+  items.forEach(([f,g])=>{ const x=A[f]; if(!x) return; for(const k of 'kpcg') t[k]+=x[k]*g/100; });
+  return t;
+}
+function addDays(ds,n){ const d=new Date(ds+'T12:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dayDefaultType(ds){
+  if(LOGS.some(l=>l.date===ds && l.session!=='CF' ? true : l.date===ds)) return 'train';
+  const wd=new Date(ds+'T12:00:00').getDay(); return (wd===0||wd===6)?'rest':'train';
+}
+function fday(ds){ if(!F.days[ds]) F.days[ds]={items:[], type:null, w:''}; return F.days[ds]; }
+function bar(lbl,val,obj,unit){
+  const pct=Math.min(100,Math.round(val/obj*100)); const over=val>obj*1.08;
+  return `<div style="margin:8px 0"><div class="row small"><b>${lbl}</b><span class="spacer"></span><span class="${over?'':'muted'}" style="${over?'color:var(--warn)':''}">${Math.round(val)} / ${obj} ${unit}</span></div>
+    <div class="prog"><i style="width:${pct}%;${over?'background:var(--warn)':''}"></i></div></div>`;
+}
+function vFood(){
+  let h=`<div class="row" style="margin:6px 0 4px">${[['reg','Registro del día'],['menu','Menú semanal'],['rec','Recetas'],['obj','Objetivos']].map(([k,t])=>`<button class="chip ${foodSub===k?'on':''}" data-fsub="${k}">${t}</button>`).join('')}</div>`;
+  if(foodSub==='reg') h+=vFoodReg();
+  else if(foodSub==='menu') h+=vFoodMenu();
+  else if(foodSub==='rec') h+=vFoodRec();
+  else h+=vFoodObj();
+  return h;
+}
+function vFoodReg(){
+  const ds=foodDate||today(); const D=F.days[ds]||{items:[],type:null,w:''};
+  const type=D.type||dayDefaultType(ds); const T=TARGETS[type];
+  const t=macros(D.items.map(x=>[x.f,x.g])); const A=allFoods();
+  // media de peso 7 días
+  const ws=[]; for(let i=0;i<7;i++){ const d=F.days[addDays(ds,-i)]; if(d&&+d.w) ws.push(+d.w); }
+  const prevWs=[]; for(let i=7;i<14;i++){ const d=F.days[addDays(ds,-i)]; if(d&&+d.w) prevWs.push(+d.w); }
+  const avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+  const wk = ws.length? fmt(avg(ws)) : null; const diff = ws.length&&prevWs.length? avg(ws)-avg(prevWs) : null;
+  const wd=new Date(ds+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long'});
+  const menuDay=MENU.find(m=>m.day.toLowerCase()===wd.toLowerCase());
+  let h=`<div class="card"><div class="row"><button class="btn sm" data-fd="-1">‹</button><b style="text-transform:capitalize">${wd} ${fdate(ds)}</b><button class="btn sm" data-fd="1">›</button><span class="spacer"></span>
+    <button class="chip ${type==='train'?'on':''}" data-ftype="train">Entreno</button><button class="chip ${type==='rest'?'on':''}" data-ftype="rest">Descanso</button></div>
+    ${bar('Calorías',t.k,T.k,'kcal')}${bar('Proteína',t.p,T.p,'g')}${bar('Hidratos',t.c,T.c,'g')}${bar('Grasas',t.g,T.g,'g')}
+    <div class="small muted">${t.p>=T.p*0.9?'✅ Proteína cumplida.':'Te faltan '+Math.max(0,Math.round(T.p-t.p))+' g de proteína.'} ${t.k<T.k?'Quedan unas '+Math.round(T.k-t.k)+' kcal.':'Te has pasado '+Math.round(t.k-T.k)+' kcal: nada grave si es puntual.'}</div></div>
+  <div class="card"><div class="row"><b>Peso en ayunas</b><input id="fw" inputmode="decimal" placeholder="kg" value="${esc(D.w||'')}" style="width:80px;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:6px;text-align:center"><button class="btn sm pri" id="fwok">Guardar</button>${D.w?'<span class="small" style="color:var(--acc)">✓ guardado</span>':''}<span class="spacer"></span>
+    <span class="small muted">${wk?'Media 7 días: <b style="color:var(--txt)">'+wk+' kg</b>':''}${diff!=null?' ('+(diff>0?'+':'')+fmt(diff)+' kg vs semana anterior)':''}</span></div>
+    <div class="small muted" style="margin-top:6px">Objetivo: bajar 0,2–0,4 kg por semana de media. Si la fuerza baja claramente, sube 150 kcal.</div></div>
+  <div class="card"><b>Lo que has comido</b>
+    ${D.items.length?`<div class="small muted" style="margin-top:4px">Toca un alimento para cambiarlo por otro o ajustar los gramos.</div><table style="margin-top:6px">${D.items.map((x,i)=>{const f=A[x.f]; const m=macros([[x.f,x.g]]);
+      if(i===editIdx) return `<tr><td colspan="4" style="background:var(--card2);border-radius:10px">
+        <div class="small muted">Cambiar <b style="color:var(--txt)">${esc(f?f.n:x.f)}</b> (${x.g} g · ${Math.round(m.k)} kcal)</div>
+        <select class="sel" id="ef" style="margin-top:6px">${Object.entries(A).sort((a,b)=>a[1].n.localeCompare(b[1].n)).map(([k,ff])=>`<option value="${k}" ${k===x.f?'selected':''}>${esc(ff.n)}</option>`).join('')}</select>
+        <div class="row" style="margin-top:6px"><input id="eg" inputmode="decimal" value="${x.g}" style="width:80px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px;text-align:center"><span class="small">g</span>
+        <select class="sel" id="em" style="width:auto;flex:1">${['Desayuno','Comida','Merienda','Cena','Otro'].concat(x.m&&!['Desayuno','Comida','Merienda','Cena','Otro'].includes(x.m)?[x.m]:[]).map(o=>`<option ${o===x.m?'selected':''}>${esc(o)}</option>`).join('')}</select></div>
+        <div class="small muted" id="ehint" style="margin-top:4px"></div>
+        <div class="row" style="margin-top:8px"><button class="btn sm pri" id="esave">Guardar cambio</button><button class="btn sm" id="ecancel">Cancelar</button><span class="spacer"></span><button class="btn sm danger" data-fdel="${i}">Borrar</button></div></td></tr>`;
+      return `<tr data-fedit="${i}" style="cursor:pointer"><td>${esc(f?f.n:x.f)}${x.m?`<div class="small muted">${esc(x.m)}</div>`:''}</td><td class="n">${x.g} g</td><td class="n small muted">${Math.round(m.k)} kcal · ${Math.round(m.p)} P</td><td><button class="btn sm ghost" data-fdel="${i}">✕</button></td></tr>`;}).join('')}</table>`:'<div class="small muted" style="margin:6px 0">Nada todavía.</div>'}
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:8px;margin-top:10px">
+      <select class="sel" id="ff">${Object.entries(A).sort((a,b)=>a[1].n.localeCompare(b[1].n)).map(([k,f])=>`<option value="${k}">${esc(f.n)}</option>`).join('')}</select>
+      <input id="fg" inputmode="decimal" placeholder="g" style="background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center">
+    </div>
+    <div class="row" style="margin-top:8px"><select class="sel" id="fm" style="width:auto;flex:1"><option>Desayuno</option><option>Comida</option><option>Merienda</option><option>Cena</option><option>Otro</option></select><button class="btn pri" id="fadd">Añadir</button></div>
+    ${menuDay?`<div class="row" style="margin-top:10px"><button class="btn sm" id="fcopy">📋 Copiar el menú tipo del ${menuDay.day.toLowerCase()}</button></div>`:''}
+  </div>
+  <details class="card"><summary><b>+ Añadir un alimento que no está en la lista</b></summary>
+    <div class="small muted" style="margin:6px 0">Valores por 100 g, de la etiqueta del envase.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <input id="cn" placeholder="Nombre" style="grid-column:1/3" class="sel">
+      <input id="ck" placeholder="kcal" inputmode="decimal" class="sel"><input id="cp" placeholder="proteína g" inputmode="decimal" class="sel">
+      <input id="cc" placeholder="hidratos g" inputmode="decimal" class="sel"><input id="cg" placeholder="grasas g" inputmode="decimal" class="sel">
+    </div><button class="btn" id="cadd" style="margin-top:8px">Guardar alimento</button></details>`;
+  return h;
+}
+function vFoodMenu(){
+  let h=`<div class="small muted" style="margin:6px 2px">Menú hecho con tus platos del Excel y la estructura de tu plan de TC Nutrition. Los gramos son en crudo o en seco, salvo las legumbres de bote. Puedes cambiar platos entre días: lo importante es el total del día. Verdura al gusto, mínimo 150 g por comida. Pulsa un día para verlo.</div>`;
+  MENU.forEach((d,di)=>{
+    const all=d.meals.flatMap(m=>m.items); const t=macros(all);
+    h+=`<details class="card" ${S.menuOpen===di?'open':''} data-mday="${di}"><summary><b>${d.day}</b> <span class="chip">${TARGETS[d.type].name}</span> <span class="small muted">${Math.round(t.k)} kcal · P ${Math.round(t.p)} · H ${Math.round(t.c)} · G ${Math.round(t.g)}</span></summary>
+      ${d.meals.map(m=>{const mt=macros(m.items); return `<div style="margin-top:10px"><div class="row"><b>${esc(m.n)}</b><span class="spacer"></span><span class="small muted">${Math.round(mt.k)} kcal · ${Math.round(mt.p)} g P</span></div>
+        <div class="small">${m.items.filter(x=>x[1]>0).map(([f,g])=>`${g} g ${esc(FOODS[f].n.replace(/ \(.*\)/,''))}`).join(' · ')}</div>
+        ${m.r?`<button class="btn sm ghost" data-rec="${m.r}" style="margin-top:4px">🍳 Receta: ${esc(RECIPES[m.r].n)}</button>`:''}</div>`;}).join('')}
+    </details>`;
+  });
+  h+=`<div class="card small"><b>Extras</b><ul><li>Agua: 2,5–3 L al día, más en días de entreno.</li><li>Verdura sin límite. Si tienes hambre, es lo primero que se sube.</li><li>Una comida libre a la semana (por ejemplo la del domingo) sin pasarte de 1.000–1.200 kcal en ella.</li><li>Alcohol: cuenta como calorías de hidratos y grasas. Una caña ≈ 90 kcal.</li></ul></div>`;
+  return h;
+}
+function vFoodRec(){
+  return Object.entries(RECIPES).map(([k,r])=>{
+    const uses=[]; MENU.forEach(d=>d.meals.forEach(m=>{ if(m.r===k) uses.push({d:d.day,m}); }));
+    const ing=uses[0]? uses[0].m.items.filter(x=>x[1]>0).map(([f,g])=>`${g} g ${esc(FOODS[f].n.replace(/ \(.*\)/,''))}`).join(' · ') : '';
+    const mt=uses[0]? macros(uses[0].m.items):null;
+    return `<div class="card" id="rec-${k}"><div class="row"><b>${esc(r.n)}</b><span class="spacer"></span><span class="chip">⏱ ${esc(r.t)}</span></div>
+      ${ing?`<div class="small" style="margin-top:6px"><span class="muted">Ingredientes (1 ración):</span> ${ing}</div>`:''}
+      ${mt?`<div class="small muted">${Math.round(mt.k)} kcal · P ${Math.round(mt.p)} · H ${Math.round(mt.c)} · G ${Math.round(mt.g)}</div>`:''}
+      <ol class="small" style="margin:8px 0 0 18px;padding:0">${r.steps.map(s=>`<li style="margin:3px 0">${esc(s)}</li>`).join('')}</ol>
+      ${uses.length?`<div class="small muted" style="margin-top:6px">En el menú: ${[...new Set(uses.map(u=>u.d))].join(', ')}</div>`:''}</div>`;
+  }).join('');
+}
+function vFoodObj(){
+  return `<div class="card small"><b>Tus objetivos</b>
+    <table style="margin-top:6px"><tr><th></th><th class="n">kcal</th><th class="n">Prot.</th><th class="n">Hidr.</th><th class="n">Grasa</th></tr>
+    ${Object.values(TARGETS).map(t=>`<tr><td>${t.name}</td><td class="n">${t.k}</td><td class="n">${t.p} g</td><td class="n">${t.c} g</td><td class="n">${t.g} g</td></tr>`).join('')}</table></div>
+  <div class="card small"><ul>
+    <li><b>Por qué estas cifras:</b> con 35 años, 1,75 m, unos 78 kg y 5 sesiones de 90 min, tu mantenimiento ronda las 2.750–2.850 kcal. La media semanal del plan es de unas 2.350 kcal: un déficit suave de unas 400–450 kcal al día.</li>
+    <li><b>Proteína alta (unos 2,1 g/kg) todos los días:</b> es lo que protege el músculo y la fuerza mientras defines. Repártela en 4 comidas de 35–45 g.</li>
+    <li><b>Hidratos según el día:</b> más los días de entreno, sobre todo antes y después de entrenar. Menos los días de descanso.</li>
+    <li><b>Tu plan de TC Nutrition</b> (febrero 2025, "Bajar peso 4", hecho cuando pesabas 81,2 kg) ya iba en esta línea. He mantenido su estructura: comidas a las 08:00, 14:30, 17:30 y 21:30, plátano antes de entrenar y batido de whey con bebida de avena después, fruta o gelatina de postre y cena de picoteo el domingo. Los platos son los de tu Excel. Las cantidades están ajustadas a tu peso actual y a 5 sesiones de 90 min.</li>
+    <li><b>Lo de 150 g de carne o pescado y 60 g de hidrato por comida</b> se queda algo corto para los días de entreno. Aquí suben a 180–250 g de proteína animal y 80–100 g de hidrato en seco en la comida.</li>
+    <li><b>Suplementos de tu plan que siguen teniendo sentido:</b> creatina monohidrato 3–5 g al día, también en los días de descanso, y whey para completar proteína.</li>
+    <li><b>Cómo ajustar:</b> pésate en ayunas 3–7 días por semana y mira la media semanal. Si en 2 semanas no baja, quita 150 kcal (primero hidratos de los días de descanso). Si baja más de 0,5 kg/semana o la fuerza cae, súmalas.</li>
+    <li>Las cifras son orientativas. No soy nutricionista: si quieres afinar más, un dietista-nutricionista puede ajustarlas contigo.</li></ul></div>`;
+}
+function bindFood(v){
+  v.querySelectorAll('[data-fsub]').forEach(b=>b.onclick=()=>{ foodSub=b.dataset.fsub; render(); });
+  v.querySelectorAll('[data-fd]').forEach(b=>b.onclick=()=>{ editIdx=-1; foodDate=addDays(foodDate||today(), +b.dataset.fd); render(); });
+  v.querySelectorAll('[data-ftype]').forEach(b=>b.onclick=()=>{ fday(foodDate||today()).type=b.dataset.ftype; saveFood(); render(); });
+  v.querySelectorAll('[data-fdel]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); fday(foodDate||today()).items.splice(+b.dataset.fdel,1); editIdx=-1; saveFood(); render(); });
+  v.querySelectorAll('[data-fedit]').forEach(r=>r.onclick=()=>{ editIdx=+r.dataset.fedit; render(); const ef=document.getElementById('ef'); if(ef) ef.scrollIntoView({block:'center'}); });
+  const ef=document.getElementById('ef'); if(ef){
+    const it=fday(foodDate||today()).items[editIdx]; const A=allFoods(); const k0=macros([[it.f,it.g]]).k;
+    ef.onchange=()=>{ const nf=A[ef.value]; if(nf && nf.k>0 && ef.value!==it.f){ const g=Math.max(5,Math.round(k0/nf.k*100/5)*5); document.getElementById('eg').value=g;
+      document.getElementById('ehint').textContent='Gramos ajustados para que tenga las mismas calorías ('+Math.round(k0)+' kcal). Cámbialos si quieres.'; } };
+    document.getElementById('esave').onclick=()=>{ const g=parseFloat((document.getElementById('eg').value||'').replace(',','.')); if(!(g>0)){ toast('Pon los gramos'); return; }
+      it.f=ef.value; it.g=g; it.m=document.getElementById('em').value; editIdx=-1; saveFood(); flushNow(); render(); toast('Cambiado'); };
+    document.getElementById('ecancel').onclick=()=>{ editIdx=-1; render(); };
+  }
+  v.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>{ foodSub='rec'; render(); const el=document.getElementById('rec-'+b.dataset.rec); if(el) el.scrollIntoView({block:'start'}); });
+  v.querySelectorAll('[data-mday]').forEach(d=>d.addEventListener('toggle',()=>{ if(d.open) S.menuOpen=+d.dataset.mday; }));
+  const fw=document.getElementById('fw'); if(fw){ fw.oninput=()=>{ fday(foodDate||today()).w=fw.value.replace(',','.'); saveFood(); };
+    const ok=()=>{ const w=parseFloat(fw.value.replace(',','.')); if(!(w>30&&w<200)){ toast('Pon un peso válido'); return; } fday(foodDate||today()).w=String(w); saveFood(); flushNow(); fw.blur(); render(); toast('Peso guardado: '+fmt(w)+' kg'); };
+    document.getElementById('fwok').onclick=ok; fw.onkeydown=e=>{ if(e.key==='Enter') ok(); }; }
+  const fadd=document.getElementById('fadd'); if(fadd) fadd.onclick=()=>{
+    const g=parseFloat((document.getElementById('fg').value||'').replace(',','.')); if(!(g>0)){ toast('Pon los gramos'); return; }
+    fday(foodDate||today()).items.push({f:document.getElementById('ff').value, g, m:document.getElementById('fm').value}); saveFood(); render(); toast('Añadido');
+  };
+  const fc=document.getElementById('fcopy'); if(fc) fc.onclick=()=>{
+    const ds=foodDate||today(); const wd=new Date(ds+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long'});
+    const md=MENU.find(m=>m.day.toLowerCase()===wd.toLowerCase()); if(!md) return;
+    const D=fday(ds); md.meals.forEach(m=>m.items.forEach(([f,g])=>{ if(g>0) D.items.push({f,g,m:m.n}); }));
+    if(!D.type) D.type=md.type; saveFood(); render(); toast('Menú copiado: borra o cambia lo que no comas');
+  };
+  const ca=document.getElementById('cadd'); if(ca) ca.onclick=()=>{
+    const n=document.getElementById('cn').value.trim(); const num=id=>parseFloat((document.getElementById(id).value||'0').replace(',','.'))||0;
+    if(!n){ toast('Pon un nombre'); return; }
+    const id='c_'+Date.now(); F.custom=F.custom||{}; F.custom[id]={n, k:num('ck'), p:num('cp'), c:num('cc'), g:num('cg')}; saveFood(); render(); toast('Alimento guardado');
+  };
+}
+
+// ====== COACH CON GEMINI (solo versión independiente) ======
+const GK='gym-gemini-key', GCHAT='gym-chat', GMODEL='gym-gemini-model', GSEARCH='gym-gemini-search';
+const lsg=k=>{try{return localStorage.getItem(k)||'';}catch(e){return '';}};
+const lss=(k,v)=>{try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v);}catch(e){}};
+let chat=[]; try{ chat=JSON.parse(lsg(GCHAT)||'[]'); }catch(e){ chat=[]; }
+let chatBusy=false, showKeyForm=false;
+
+function mdLite(t){
+  let h=esc(t);
+  h=h.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>');
+  h=h.replace(/^#{1,4}\s*(.+)$/gm,'<b>$1</b>');
+  h=h.replace(/^\s*[-*•]\s+(.+)$/gm,'• $1');
+  return h.replace(/\n/g,'<br>');
+}
+function vCoach(){
+  const key=lsg(GK);
+  if(!key || showKeyForm){
+    return `<h2>Coach (Gemini)</h2><div class="card small">
+      <p>Pega tu clave de la API de Gemini. Se guarda <b>solo en este móvil</b>: no va en las copias de seguridad ni se sube a la web.</p>
+      <input id="gkey" class="sel" type="password" autocomplete="off" placeholder="AIza…" value="${esc(key)}">
+      <div class="row" style="margin-top:8px"><button class="btn pri" id="gsave">Guardar clave</button>${key?'<button class="btn" id="gcancel">Cancelar</button><button class="btn danger" id="gdel">Borrar clave</button>':''}</div>
+      <p class="muted" style="margin-top:10px">Cómo conseguirla: entra en <b>aistudio.google.com</b> con tu cuenta de Google → <b>Get API key</b> → <b>Create API key</b> → cópiala y pégala aquí.</p></div>`;
+  }
+  const search=lsg(GSEARCH)!=='0';
+  let h=`<div class="row" style="margin:6px 0"><b>🤖 Coach</b><span class="muted small">${esc(lsg(GMODEL)||'Gemini')}</span><span class="spacer"></span>
+    <button class="chip ${search?'on':''}" id="gsearch">🌐 Internet ${search?'sí':'no'}</button><button class="chip" id="gclear">Borrar chat</button><button class="chip" id="gkeybtn">🔑</button></div>`;
+  if(!chat.length) h+=`<div class="card small muted">Conoce tu programa, tu historial de entrenos, la comida, el peso y tus marcas. Prueba con:
+    <div class="row" style="margin-top:8px">${['¿Qué me toca hoy y con qué pesos?','¿Cómo voy de proteína esta semana?','Me molesta el glúteo en el step-up, ¿por qué lo cambio?','¿Qué cenar si me quedan 600 kcal?'].map(q=>`<button class="chip" data-gq="${esc(q)}">${esc(q)}</button>`).join('')}</div></div>`;
+  chat.forEach(m=>{
+    h+=`<div class="card" style="${m.role==='user'?'background:#1a2416;border-color:#3c5a2a;margin-left:40px':'margin-right:10px'}"><div class="small">${m.role==='user'?esc(m.text).replace(/\n/g,'<br>'):mdLite(m.text)}</div>
+      ${m.sources&&m.sources.length?`<div class="small muted" style="margin-top:8px">Fuentes: ${m.sources.map(s=>`<a href="${esc(s.uri)}" target="_blank" rel="noopener">${esc(s.title||'enlace')}</a>`).join(' · ')}</div>`:''}
+      ${m.suggest?`<iframe sandbox="allow-popups allow-popups-to-escape-sandbox" srcdoc="${esc(m.suggest)}" style="width:100%;height:60px;border:0;margin-top:6px;background:transparent"></iframe>`:''}</div>`;
+  });
+  if(chatBusy) h+=`<div class="card small muted">Pensando…</div>`;
+  h+=`<div class="card" style="position:sticky;bottom:78px"><textarea id="gq" placeholder="Pregúntale algo…" style="min-height:60px"></textarea>
+    <div class="row" style="margin-top:6px"><button class="btn sm" id="gmic" type="button">🎤</button><span class="spacer"></span><button class="btn pri" id="gsend" ${chatBusy?'disabled':''}>Enviar</button></div></div>
+    <div class="small muted" style="margin:6px 2px">Las respuestas pueden equivocarse. No sustituye a un médico ni a un fisio.</div>`;
+  return h;
+}
+function coachContext(){
+  const sess=SESSIONS.map(s=>{
+    const items=s.blocks.flatMap(b=>b.items.filter(it=>it.ph.includes(S.phase)).map(it=>{
+      const n=EX[it.ex].name; if(it.sets) return `${n} ${it.sets}x${it.reps}${loadTxt(it.load)?' @ '+loadTxt(it.load):''}${it.tempo?' tempo '+it.tempo:''}`; return `${n}: ${it.dose||''}`; }));
+    return `${s.id} ${s.title}: ${items.join('; ')}`;}).join('\n');
+  const logs=[...LOGS].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,15).map(l=>{
+    const ent=(l.entries||[]).map(e=>`${EX[e.ex]?EX[e.ex].name:e.ex} ${e.sets.filter(s=>s.kg||s.reps).map(s=>(s.kg?s.kg+'x':'')+(s.reps||'?')).join(',')}`).join('; ');
+    return `${l.date} ${l.session} dolor ${l.pain??'-'}/10 RPE ${l.rpe??'-'}. ${ent}${(l.cardio||[]).length?'. Cardio: '+l.cardio.map(c=>c.min+' min').join(','):''}${l.notes?'. Notas: '+l.notes:''}`;}).join('\n');
+  const days=Object.keys(F.days||{}).sort().slice(-14).map(ds=>{
+    const D=F.days[ds]; const t=macros((D.items||[]).map(x=>[x.f,x.g])); const ty=D.type||dayDefaultType(ds);
+    return `${ds} (${ty==='train'?'entreno':'descanso'}): ${Math.round(t.k)} kcal, P ${Math.round(t.p)}, H ${Math.round(t.c)}, G ${Math.round(t.g)}${D.w?', peso '+D.w+' kg':''}`;}).join('\n');
+  const td=F.days[today()]; const todayFood=td?(td.items||[]).map(x=>{const f=allFoods()[x.f];return `${x.g} g ${f?f.n:x.f} (${x.m||''})`;}).join('; '):'nada registrado';
+  const prs=Object.keys(BASE_PRS).map(k=>`${BASE_PRS[k].name} 1RM ${rm(k)} kg`).join(', ');
+  return `Eres el entrenador personal y asesor de nutrición de José Manuel (Camacho), dentro de su app de gimnasio. Responde en español de España, directo, breve y práctico. Usa sus datos reales de abajo. Si algo no está en los datos, dilo. Si preguntas por salud o dolor, da orientación prudente y recomienda fisio o médico ante señales de alarma (hormigueo, adormecimiento, pérdida de fuerza, dolor que irradia o empeora). No inventes datos.
+
+PERFIL: 35 años, 1,75 m, ~78 kg, viene de CrossFit. Objetivos: mejorar mucho el cardio, definir sin perder fuerza, mejorar movilidad (fuerza en rangos máximos). Entrena 5 días/semana, sesiones de ~90 min. Gimnasio de su comunidad: rack con polea (máx 100 kg) y landmine, barra olímpica, barra hexagonal, multiestación Life Fitness, banco con extensión/curl de piernas, TRX, torre de dominadas/fondos, sandbag 15 kg, mancuernas hasta 20 kg, 3 bicis estáticas, elíptica y cinta; puede correr por la calle. No se pueden soltar pesas (vecinos).
+LESIÓN: dolor en glúteo derecho alto tras back squat y peso muerto, con irradiación por la parte trasera de la pierna hasta el tobillo (posible irritación del ciático); ya no irradia, molestia al adelantar la pierna. Plan por fases: Fase 1 proteger (sin back squat, peso muerto pesado ni saltos), Fase 2 reintroducir, Fase 3 construir. Semáforo de dolor: 0-2 sigue, 3-4 baja carga/rango, ≥5 o irradiación para.
+ESTADO: hoy ${today()}, semana ${weekNo()} de 12${isDeload()?' (descarga)':''}, ${PHASES[S.phase].name}. Siguiente sesión propuesta: ${nextSession()}.
+PROGRAMA (fase actual):
+${sess}
+MARCAS: ${prs}.
+NUTRICIÓN: objetivos entreno ${TARGETS.train.k} kcal (P ${TARGETS.train.p} H ${TARGETS.train.c} G ${TARGETS.train.g}); descanso ${TARGETS.rest.k} kcal (P ${TARGETS.rest.p} H ${TARGETS.rest.c} G ${TARGETS.rest.g}). Comidas 08:00, 14:30, 17:30 (plátano antes de entrenar, batido whey+bebida de avena después), 21:30. Bajar 0,2-0,4 kg/semana.
+COMIDA DE HOY: ${todayFood}
+ÚLTIMOS DÍAS DE COMIDA:
+${days||'sin datos'}
+ÚLTIMAS SESIONES:
+${logs||'sin sesiones registradas'}`;
+}
+async function pickModel(key){
+  const saved=lsg(GMODEL); if(saved) return saved;
+  try{
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key}});
+    if(r.ok){
+      const j=await r.json();
+      const names=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace('models/',''))
+        .filter(n=>/^gemini-[\d.]+-flash$/.test(n));
+      const ver=n=>parseFloat(n.split('-')[1])||0;
+      names.sort((a,b)=>ver(b)-ver(a));
+      if(names[0]){ lss(GMODEL,names[0]); return names[0]; }
+    }
+  }catch(e){}
+  return 'gemini-flash-latest';
+}
+async function askCoach(q){
+  const key=lsg(GK); if(!key||chatBusy||!q.trim()) return;
+  chat.push({role:'user', text:q.trim()}); chatBusy=true; render(); scrollEnd();
+  try{
+    const model=await pickModel(key);
+    const body={ systemInstruction:{parts:[{text:coachContext()}]},
+      contents: chat.slice(-12).map(m=>({role:m.role==='user'?'user':'model', parts:[{text:m.text}]})) };
+    if(lsg(GSEARCH)!=='0') body.tools=[{google_search:{}}];
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok){
+      const msg=(j.error&&j.error.message)||('Error '+r.status);
+      if(r.status===404){ lss(GMODEL,null); }
+      throw new Error(r.status===400&&/API key/i.test(msg)?'La clave no es válida. Revísala con el botón 🔑.': r.status===429?'Has llegado al límite gratuito de Gemini por ahora. Prueba en un rato.': r.status===404?'Ese modelo ya no existe; vuelve a intentarlo y elegiré otro.': msg);
+    }
+    const c=(j.candidates||[])[0]||{};
+    const text=((c.content&&c.content.parts)||[]).map(p=>p.text||'').join('').trim()||'(sin respuesta)';
+    const gm=c.groundingMetadata||{};
+    const sources=(gm.groundingChunks||[]).map(x=>x.web).filter(Boolean).slice(0,5).map(w=>({uri:w.uri,title:w.title}));
+    const suggest=gm.searchEntryPoint&&gm.searchEntryPoint.renderedContent||'';
+    chat.push({role:'model', text, sources, suggest});
+  }catch(e){
+    chat.push({role:'model', text:'⚠️ '+(e.message||'No se pudo conectar. ¿Tienes internet?')});
+  }
+  chatBusy=false; chat=chat.slice(-40); lss(GCHAT, JSON.stringify(chat)); render(); scrollEnd();
+}
+function scrollEnd(){ setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),50); }
+function bindCoach(v){
+  const gs=document.getElementById('gsave'); if(gs) gs.onclick=()=>{ const k=document.getElementById('gkey').value.trim(); if(!k){toast('Pega la clave');return;} lss(GK,k); lss(GMODEL,null); showKeyForm=false; render(); toast('Clave guardada'); };
+  const gc=document.getElementById('gcancel'); if(gc) gc.onclick=()=>{ showKeyForm=false; render(); };
+  const gd=document.getElementById('gdel'); if(gd) gd.onclick=()=>{ if(confirm('¿Borrar la clave de este móvil?')){ lss(GK,null); lss(GMODEL,null); showKeyForm=false; render(); } };
+  const kb=document.getElementById('gkeybtn'); if(kb) kb.onclick=()=>{ showKeyForm=true; render(); };
+  const sr=document.getElementById('gsearch'); if(sr) sr.onclick=()=>{ lss(GSEARCH, lsg(GSEARCH)==='0'?'1':'0'); render(); };
+  const cl=document.getElementById('gclear'); if(cl) cl.onclick=()=>{ if(confirm('¿Borrar la conversación?')){ chat=[]; lss(GCHAT,'[]'); render(); } };
+  v.querySelectorAll('[data-gq]').forEach(b=>b.onclick=()=>askCoach(b.dataset.gq));
+  const send=document.getElementById('gsend'); if(send){ const ta=document.getElementById('gq');
+    send.onclick=()=>{ const q=ta.value; ta.value=''; askCoach(q); };
+    const mic=document.getElementById('gmic'); mic.onclick=()=>{
+      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!SR){ ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); return; }
+      try{ const rec=new SR(); rec.lang='es-ES'; rec.interimResults=false; mic.textContent='⏺';
+        rec.onresult=e=>{ ta.value=(ta.value?ta.value+' ':'')+e.results[0][0].transcript; };
+        rec.onerror=()=>{ mic.textContent='🎤'; ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); };
+        rec.onend=()=>{ mic.textContent='🎤'; }; rec.start(); }catch(e){ ta.focus(); }
+    }; }
+}
+
+// ====== EVENTOS ======
+function bind(){
+  const v=document.getElementById('view');
+  bindFood(v); bindData(v); if(STANDALONE) bindCoach(v);
+  v.querySelectorAll('[data-sess]').forEach(b=>b.onclick=()=>{
+    const sid=b.dataset.sess;
+    if(S.draft && S.draft.session!==sid && draftHasData() && !confirm('Tienes una sesión a medias. ¿Cambiar y descartarla?')) return;
+    if(S.draft && S.draft.session!==sid) S.draft=null;
+    S.sel=sid; saveState(); render(); window.scrollTo(0,0);
+  });
+  v.querySelectorAll('[data-open]').forEach(el=>el.onclick=e=>{ if(e.target.closest('[data-ck]')) return; el.parentElement.classList.toggle('open'); });
+  v.querySelectorAll('[data-ck]').forEach(el=>el.onclick=e=>{ e.stopPropagation(); const it=S.draft.items[el.dataset.ck]; it.done=!it.done; saveState(); render(); });
+  v.querySelectorAll('[data-set]').forEach(el=>el.onclick=()=>{
+    const [k,si]=el.dataset.set.split('|'); const s=S.draft.items[k].sets[+si]; s.done=!s.done;
+    if(s.done && !s.reps){ const it=findItem(k); if(it) s.reps=String(parseInt(it.reps)||''); }
+    saveState(); render();
+    if(s.done && +el.dataset.rest) startTimer(+el.dataset.rest);
+  });
+  v.querySelectorAll('[data-in]').forEach(el=>el.oninput=()=>{ const [k,si,f]=el.dataset.in.split('|'); S.draft.items[k].sets[+si][f]=el.value.replace(',','.'); saveState(); });
+  v.querySelectorAll('[data-cmin]').forEach(el=>el.oninput=()=>{ S.draft.items[el.dataset.cmin].min=el.value; saveState(); });
+  v.querySelectorAll('[data-addset]').forEach(el=>el.onclick=()=>{ const it=S.draft.items[el.dataset.addset]; const l=it.sets[it.sets.length-1]; it.sets.push({kg:l?l.kg:'',reps:'',done:false}); saveState(); render(); });
+  v.querySelectorAll('[data-timer]').forEach(el=>el.onclick=()=>startTimer(+el.dataset.timer));
+  const pain=document.getElementById('pain'); if(pain){
+    pain.oninput=()=>{S.draft.pain=+pain.value;document.getElementById('painV').textContent=pain.value;saveState();};
+    const rpe=document.getElementById('rpe'); rpe.oninput=()=>{S.draft.rpe=+rpe.value;document.getElementById('rpeV').textContent=rpe.value;saveState();};
+    const notes=document.getElementById('notes'); notes.oninput=()=>{S.draft.notes=notes.value;saveState();};
+    document.getElementById('finish').onclick=finish;
+    setupMic(notes);
+    document.getElementById('reset').onclick=()=>{ if(confirm('¿Vaciar la sesión actual?')){ S.draft=null; saveState(); render(); } };
+  }
+  v.querySelectorAll('[data-phase]').forEach(el=>el.onclick=()=>{ const p=+el.dataset.phase; if(p===S.phase) return; if(!confirm('¿Cambiar a '+PHASES[p].name+'?')) return; S.phase=p; S.draft=null; saveState(); render(); });
+  v.querySelectorAll('[data-crit]').forEach(el=>el.onclick=()=>{ S.crit[el.dataset.crit]=!S.crit[el.dataset.crit]; saveState(); render(); });
+  const cf=document.getElementById('cfLog'); if(cf) cf.onclick=async()=>{
+    const n=prompt('Nota del día de CrossFit (qué hiciste, cómo fue):','CrossFit'); if(n===null) return;
+    const ts=Date.now(); await addLog({id:'log-'+ts, ts, date:today(), session:'CF', phase:S.phase, pain:0, rpe:null, notes:n, entries:[], cardio:[]}); toast('Día de CrossFit guardado'); render();
+  };
+  v.querySelectorAll('[data-log]').forEach(el=>el.onclick=e=>{ if(e.target.closest('button')) return; el.classList.toggle('open'); });
+  v.querySelectorAll('[data-dellog]').forEach(el=>el.onclick=async()=>{ if(confirm('¿Borrar esta sesión del historial?')){ await delLog(el.dataset.dellog); toast('Borrada'); } });
+  const hx=document.getElementById('histEx'); if(hx) hx.onchange=()=>{ S.histEx=hx.value; saveState(); render(); };
+  v.querySelectorAll('[data-pr]').forEach(el=>el.onchange=()=>{ const val=parseFloat(el.value.replace(',','.')); if(val>0){ S.prOverrides[el.dataset.pr]=val; S.draft=null; saveState(); render(); toast('Marca actualizada'); } });
+  v.querySelectorAll('[data-prreset]').forEach(el=>el.onclick=()=>{ delete S.prOverrides[el.dataset.prreset]; S.draft=null; saveState(); render(); });
+  v.querySelectorAll('[data-useprbest]').forEach(el=>el.onclick=()=>{ const [k,val]=el.dataset.useprbest.split('|'); S.prOverrides[k]=+val; S.draft=null; saveState(); render(); toast('Marca actualizada'); });
+}
+function draftHasData(){ return S.draft && Object.values(S.draft.items).some(x=>x.sets?x.sets.some(s=>s.done||s.reps):x.done); }
+function findItem(k){
+  const [, exId, bi, ii]=k.split(':'); const sess=SESSIONS.find(s=>s.id===S.draft.session);
+  return sess && sess.blocks[+bi] && sess.blocks[+bi].items[+ii];
+}
+async function finish(){
+  const d=S.draft; if(!d) return;
+  if(!draftHasData() && !confirm('No has marcado nada. ¿Guardar igualmente?')) return;
+  const entries=[], cardio=[];
+  Object.entries(d.items).forEach(([k,x])=>{
+    if(x.sets){ const sets=x.sets.filter(s=>s.done||s.reps).map(s=>({kg:s.kg===''?'':+s.kg, reps:s.reps})); if(sets.length) entries.push({ex:x.ex, sets}); }
+    else if(EX[x.ex].type==='cardio' && (x.done||x.min)) cardio.push({ex:x.ex, min:x.min, done:x.done});
+  });
+  const ts=Date.now();
+  const log={ id:'log-'+ts, ts, date:d.date||today(), session:d.session, phase:d.phase, pain:d.pain, rpe:d.rpe, notes:d.notes, entries, cardio };
+  try{ await addLog(log); }catch(e){ alert('No se pudo guardar en la nube. Inténtalo de nuevo.'); return; }
+  S.draft=null; S.sel=null; saveState();
+  toast('¡Sesión guardada! 💪');
+  tab='hist'; render(); window.scrollTo(0,0);
+}
+
+// ====== DICTADO ======
+let dict=null, rec=null, listening=false;
+try{ if(window.claude&&claude.use) claude.use('dictation').then(d=>{dict=d;}).catch(()=>{}); }catch(e){}
+function setupMic(ta){
+  const b=document.getElementById('mic'); if(!b) return;
+  const append=t=>{ if(!t) return; ta.value=(ta.value?ta.value.replace(/\s*$/,' '):'')+t.trim(); S.draft.notes=ta.value; saveState(); };
+  const setBtn=on=>{ listening=on; b.textContent=on?'⏹ Parar':'🎤 Dictar'; b.classList.toggle('pri',on); };
+  b.onclick=()=>{
+    if(listening){ if(dict&&dict.active()) dict.stop(); if(rec) rec.stop(); setBtn(false); return; }
+    if(dict){ // escritorio (Chrome / app de Claude)
+      dict.onFinal(({text})=>append(text)); dict.onState(({state})=>setBtn(state!=='idle'));
+      dict.start({language:'es'}).catch(()=>{ kbTip(ta); }); return;
+    }
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(SR){
+      try{
+        rec=new SR(); rec.lang='es-ES'; rec.continuous=true; rec.interimResults=false;
+        rec.onresult=e=>{ for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) append(e.results[i][0].transcript); };
+        rec.onerror=()=>{ setBtn(false); kbTip(ta); };
+        rec.onend=()=>setBtn(false);
+        rec.start(); setBtn(true); return;
+      }catch(e){}
+    }
+    kbTip(ta);
+  };
+}
+function kbTip(ta){ ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); }
+
+// ====== TEMPORIZADOR ======
+let tEnd=0, tInt=null;
+function startTimer(sec){
+  tEnd=Date.now()+sec*1000; const el=document.getElementById('timer'); el.classList.add('show'); el.classList.remove('end');
+  clearInterval(tInt); tick(); tInt=setInterval(tick,250);
+}
+function tick(){
+  const left=Math.round((tEnd-Date.now())/1000); const el=document.getElementById('timer');
+  document.getElementById('tLeft').textContent= left>0? fmtT(left) : '¡Ya!';
+  if(left<=0 && !el.classList.contains('end')){ el.classList.add('end'); beep(); try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){} setTimeout(()=>{ if(Date.now()>=tEnd){ el.classList.remove('show'); clearInterval(tInt);} },6000); }
+}
+function beep(){ try{ const c=new (window.AudioContext||window.webkitAudioContext)(); [0,.25].forEach(t=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=880;o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(.2,c.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.2);o.start(c.currentTime+t);o.stop(c.currentTime+t+.22);}); }catch(e){} }
+document.getElementById('tPlus').onclick=()=>{ tEnd=Math.max(tEnd,Date.now())+30000; document.getElementById('timer').classList.remove('end'); };
+document.getElementById('tStop').onclick=()=>{ clearInterval(tInt); document.getElementById('timer').classList.remove('show'); };
+
+if(!STANDALONE){ const ct=document.querySelector('.coachtab'); if(ct) ct.remove(); }
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{ tab=b.dataset.t; render(); window.scrollTo(0,0); });
+function flushNow(){ if(saveTimer){ clearTimeout(saveTimer); flushState(); } if(fTimer){ clearTimeout(fTimer); flushFood(); } }
+window.addEventListener('beforeunload', flushNow);
+window.addEventListener('pagehide', flushNow);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushNow(); });
+init();
+</script>
+</body>
+</html>
