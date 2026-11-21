@@ -784,8 +784,17 @@ let DB = null, UID = null;
 let tab = 'hoy';
 
 function esc(s){return String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+// Copia espejo en IndexedDB: en el iPhone, si cierras la app justo después de guardar, lo escrito en
+// localStorage a veces no llega a guardarse. IndexedDB confirma cada escritura en disco.
+const IDB={ p:null,
+  db(){ if(this.p) return this.p; this.p=new Promise((res,rej)=>{ try{ const r=indexedDB.open('gym-camacho',1); r.onupgradeneeded=()=>r.result.createObjectStore('kv'); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }catch(e){ rej(e); } }); return this.p; },
+  async get(k){ try{ const d=await this.db(); return await new Promise(res=>{ const q=d.transaction('kv').objectStore('kv').get(k); q.onsuccess=()=>res(q.result===undefined?null:q.result); q.onerror=()=>res(null); }); }catch(e){ return null; } },
+  async set(k,v){ try{ const d=await this.db(); await new Promise(res=>{ const t=d.transaction('kv','readwrite'); if(v===null) t.objectStore('kv').delete(k); else t.objectStore('kv').put(v,k); t.oncomplete=res; t.onerror=res; t.onabort=res; }); }catch(e){} }
+};
 function lsGet(){try{return JSON.parse(localStorage.getItem(LS_KEY)||'null');}catch(e){return null;}}
-function lsSet(v){try{localStorage.setItem(LS_KEY, JSON.stringify(v));}catch(e){}}
+let idbTimer=null;
+function lsSet(v){ const j=JSON.stringify(v); try{localStorage.setItem(LS_KEY, j);}catch(e){} clearTimeout(idbTimer); idbTimer=setTimeout(()=>IDB.set(LS_KEY, j), 150); }
+function storedAt(o){ return o ? Math.max(0, ...((o.LOGS||[]).map(x=>x.ts||0)), +(o.savedAt||0)) : 0; }
 function setStatus(t){document.getElementById('status').textContent=t;}
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),1800);}
 
@@ -794,7 +803,7 @@ let saveTimer=null, saving=false, saveAgain=false, lastStateJson='', lastFoodJso
 function logsCol(){ return DB.doc('data/users/'+UID+'/logs').collection('items'); }
 function saveState(){ clearTimeout(saveTimer); saveTimer=setTimeout(flushState,700); }
 let fTimer=null, fSaving=false, fAgain=false;
-function saveFood(){ lsSet({S, LOGS, F}); clearTimeout(fTimer); fTimer=setTimeout(flushFood,700); }
+function saveFood(){ lsSet({S, LOGS, F, savedAt:Date.now()}); clearTimeout(fTimer); fTimer=setTimeout(flushFood,700); }
 async function flushFood(){
   fTimer=null;
   if(backend!=='db') return;
@@ -806,7 +815,7 @@ async function flushFood(){
 }
 async function flushState(){
   saveTimer=null;
-  lsSet({S, LOGS, F});
+  lsSet({S, LOGS, F, savedAt:Date.now()});
   if(backend!=='db') return;
   if(saving){ saveAgain=true; return; }
   saving=true;
@@ -816,19 +825,26 @@ async function flushState(){
   if(saveAgain){ saveAgain=false; flushState(); }
 }
 async function addLog(log){
-  if(backend!=='db'){ LOGS.push(log); lsSet({S, LOGS, F}); return; }
-  LOGS=LOGS.filter(x=>x.id!==log.id).concat([log]); lsSet({S, LOGS, F});
+  if(backend!=='db'){ LOGS.push(log); lsSet({S, LOGS, F, savedAt:Date.now()}); return; }
+  LOGS=LOGS.filter(x=>x.id!==log.id).concat([log]); lsSet({S, LOGS, F, savedAt:Date.now()});
   await logsCol().doc(log.id).set(log);
 }
 async function delLog(id){
-  if(backend!=='db'){ LOGS=LOGS.filter(l=>l.id!==id); lsSet({S, LOGS, F}); render(); return; }
-  LOGS=LOGS.filter(l=>l.id!==id); lsSet({S, LOGS, F}); render();
+  if(backend!=='db'){ LOGS=LOGS.filter(l=>l.id!==id); lsSet({S, LOGS, F, savedAt:Date.now()}); render(); return; }
+  LOGS=LOGS.filter(l=>l.id!==id); lsSet({S, LOGS, F, savedAt:Date.now()}); render();
   await logsCol().doc(id).delete();
 }
 
 async function init(){
   // Primero lo local, por si no hay conexión
-  const l = lsGet(); if(l){ S = Object.assign(S, l.S||{}); LOGS = l.LOGS||[]; if(l.F) F = Object.assign(F, l.F); }
+  let l = lsGet();
+  if(STANDALONE){ // recupera de la copia espejo si localStorage se perdió o está más atrasado
+    try{ const j=await IDB.get(LS_KEY); const o=j?JSON.parse(j):null; if(o && (!l || (o.savedAt||0)>(l.savedAt||0))){ l=o; try{ localStorage.setItem(LS_KEY, j); }catch(e){} } }catch(e){}
+    for(const k of ['gym-gemini-key','gym-camacho-lastbackup','gym-chat']){ try{ if(!localStorage.getItem(k)){ const v=await IDB.get(k); if(v) localStorage.setItem(k, v); } }catch(e){} }
+    if(typeof GCHAT!=='undefined'){ try{ chat=JSON.parse(localStorage.getItem(GCHAT)||'[]'); }catch(e){} }
+    try{ const k=localStorage.getItem('gym-gemini-key'); if(k) IDB.set('gym-gemini-key', k); }catch(e){}
+  }
+  if(l){ S = Object.assign(S, l.S||{}); LOGS = l.LOGS||[]; if(l.F) F = Object.assign(F, l.F); }
   render();
   if(STANDALONE){
     backend='local'; setStatus('📱 guardado en este móvil');
@@ -860,7 +876,7 @@ async function init(){
       const remote = JSON.stringify(snap.data());
       if(remote!==lastStateJson){
         S = Object.assign({ phase:1, prOverrides:{}, crit:{}, draft:null, sel:null }, JSON.parse(remote));
-        lastStateJson = remote; lsSet({S, LOGS, F});
+        lastStateJson = remote; lsSet({S, LOGS, F, savedAt:Date.now()});
         safeRender();
       }
     } else if(!snap.metadata.fromCache && !ready.state && l && l.S){ flushState(); }
@@ -873,7 +889,7 @@ async function init(){
       const remote = JSON.stringify(snap.data());
       if(remote!==lastFoodJson){
         F = Object.assign({days:{},custom:{}}, JSON.parse(remote));
-        lastFoodJson = remote; lsSet({S, LOGS, F});
+        lastFoodJson = remote; lsSet({S, LOGS, F, savedAt:Date.now()});
         safeRender();
       }
     } else if(!snap.metadata.fromCache && !ready.food && l && l.F && Object.keys(l.F.days||{}).length){ flushFood(); }
@@ -888,7 +904,7 @@ async function init(){
       l.LOGS.filter(x=>x && x.id && !have.has(x.id)).forEach(x=>{ remote.push(x); logsCol().doc(x.id).set(x).catch(()=>{}); });
     }
     const changed = JSON.stringify(remote)!==JSON.stringify(LOGS);
-    LOGS = remote; lsSet({S, LOGS, F});
+    LOGS = remote; lsSet({S, LOGS, F, savedAt:Date.now()});
     if(changed) safeRender();
     if(!qs.metadata.fromCache) done('logs');
   }, fail);
@@ -1189,7 +1205,7 @@ function importData(txt){
   if(!d || d.app!=='gym-camacho'){ alert('Ese archivo no es una copia de esta app.'); return; }
   if(!confirm('Esto reemplaza los datos de este móvil por los de la copia ('+(d.LOGS||[]).length+' sesiones). ¿Seguir?')) return;
   S=Object.assign({ phase:1, prOverrides:{}, crit:{}, draft:null, sel:null }, d.S||{}); LOGS=d.LOGS||[]; F=Object.assign({days:{},custom:{}}, d.F||{});
-  lsSet({S, LOGS, F}); try{ localStorage.setItem(BK_KEY, String(Date.now())); }catch(e){}
+  lsSet({S, LOGS, F, savedAt:Date.now()}); try{ localStorage.setItem(BK_KEY, String(Date.now())); IDB.set(BK_KEY, String(Date.now())); }catch(e){}
   render(); toast('Datos importados');
 }
 function bindData(v){
@@ -1202,12 +1218,12 @@ function bindData(v){
       if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:'Copia gimnasio'}); ok=true; }
     }catch(e){ if(e && e.name==='AbortError') return; }
     if(!ok){ try{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([json],{type:'application/json'})); a.download=name; document.body.appendChild(a); a.click(); a.remove(); ok=true; }catch(e){} }
-    if(ok){ try{ localStorage.setItem(BK_KEY, String(Date.now())); }catch(e){} toast('Copia exportada'); render(); }
+    if(ok){ try{ localStorage.setItem(BK_KEY, String(Date.now())); IDB.set(BK_KEY, String(Date.now())); }catch(e){} toast('Copia exportada'); render(); }
     else showArea(json);
   };
   document.getElementById('bkCopy').onclick=async()=>{
     const json=exportJson();
-    try{ await navigator.clipboard.writeText(json); toast('Datos copiados'); try{ localStorage.setItem(BK_KEY, String(Date.now())); }catch(e){} }
+    try{ await navigator.clipboard.writeText(json); toast('Datos copiados'); try{ localStorage.setItem(BK_KEY, String(Date.now())); IDB.set(BK_KEY, String(Date.now())); }catch(e){} }
     catch(e){ showArea(json); }
   };
   const im=document.getElementById('bkImport'); if(im){
@@ -1251,7 +1267,7 @@ function vGuia(){
   <li>Pulsa <b>Compartir</b> (el cuadrado con la flecha) y luego <b>"Añadir a pantalla de inicio"</b>.</li>
   <li>Te queda un icono como si fuera una app. Lo que marques se guarda en tu cuenta y lo ves igual en el ordenador.</li></ol>
   <p>Arriba a la derecha tiene que poner <b>☁️ sincronizado</b>. Si pone otra cosa, los datos solo están en ese dispositivo.</p></div>`}
-  <div class="small muted" style="margin:4px 2px">Versión de la app: 10 (21/11/2026)</div>
+  <div class="small muted" style="margin:4px 2px">Versión de la app: 11 (21/11/2026)</div>
   <h2>Gimnasio de la comunidad</h2><div class="card small"><ul>
   <li>Hay un cartel que pide no soltar pesas ni discos: bajada siempre controlada, también en las cargadas.</li>
   <li>La polea del rack aguanta como máximo 100 kg.</li>
@@ -1575,7 +1591,7 @@ function bindFood(v){
 // ====== COACH CON GEMINI (solo versión independiente) ======
 const GK='gym-gemini-key', GCHAT='gym-chat', GMODEL='gym-gemini-model', GSEARCH='gym-gemini-search';
 const lsg=k=>{try{return localStorage.getItem(k)||'';}catch(e){return '';}};
-const lss=(k,v)=>{try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v);}catch(e){}};
+const lss=(k,v)=>{try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v);}catch(e){} if(k===GK||k===GCHAT) IDB.set(k,v); };
 let chat=[]; try{ chat=JSON.parse(lsg(GCHAT)||'[]'); }catch(e){ chat=[]; }
 let chatBusy=false, showKeyForm=false;
 
