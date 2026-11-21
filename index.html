@@ -1251,7 +1251,7 @@ function vGuia(){
   <li>Pulsa <b>Compartir</b> (el cuadrado con la flecha) y luego <b>"Añadir a pantalla de inicio"</b>.</li>
   <li>Te queda un icono como si fuera una app. Lo que marques se guarda en tu cuenta y lo ves igual en el ordenador.</li></ol>
   <p>Arriba a la derecha tiene que poner <b>☁️ sincronizado</b>. Si pone otra cosa, los datos solo están en ese dispositivo.</p></div>`}
-  <div class="small muted" style="margin:4px 2px">Versión de la app: 5 (21/11/2026)</div>
+  <div class="small muted" style="margin:4px 2px">Versión de la app: 6 (21/11/2026)</div>
   <h2>Gimnasio de la comunidad</h2><div class="card small"><ul>
   <li>Hay un cartel que pide no soltar pesas ni discos: bajada siempre controlada, también en las cargadas.</li>
   <li>La polea del rack aguanta como máximo 100 kg.</li>
@@ -1528,8 +1528,8 @@ function bindCoach(v){
     const mic=document.getElementById('gmic'); let on=false;
     const setBtn=v=>{ on=v; mic.textContent=v?'⏹':'🎤'; mic.classList.toggle('pri',v); };
     mic.onclick=()=>{
-      if(on){ stopRec(); setBtn(false); return; }
-      const ok=browserDictate(t=>{ ta.value=(ta.value?ta.value.replace(/\s*$/,' '):'')+t.trim(); }, setBtn, ()=>kbTip(ta));
+      if(on){ stopRec(); return; }
+      const ok=browserDictate(()=>ta.value, v=>{ ta.value=v; }, setBtn, ()=>kbTip(ta));
       if(!ok) kbTip(ta);
     }; }
 }
@@ -1599,31 +1599,59 @@ async function finish(){
 }
 
 // ====== DICTADO ======
-// Reconocimiento de voz del navegador. En iPhone (Safari y Chrome usan el mismo motor) una sesión
-// que no se cierra bien deja el micro encendido sin escuchar: siempre se aborta la anterior,
-// una frase por pulsación y corte de seguridad a los 60 s.
-let activeRec=null, recTimer=null;
-function stopRec(){ if(activeRec){ const r=activeRec; activeRec=null; try{ r.onresult=null; r.abort(); }catch(e){} } clearTimeout(recTimer); }
+// Reconocimiento de voz del navegador.
+// En iPhone, crear un reconocedor nuevo cada vez hace que a la segunda el micro se encienda sin captar
+// nada. Por eso se usa UN SOLO reconocedor para toda la sesión, se va mostrando el texto mientras hablas,
+// y si en 8 s no llega nada se reinicia solo para que la siguiente pulsación funcione.
 const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-function browserDictate(append, setBtn, onFail){
-  // En iPhone/iPad el reconocimiento de voz de las webs no es fiable (falla en Chrome y en las apps
-  // de la pantalla de inicio): se usa el dictado del teclado, que funciona siempre.
-  if(IS_IOS) return false;
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR) return false;
-  stopRec();
-  let rec; try{ rec=new SR(); }catch(e){ return false; }
-  rec.lang='es-ES'; rec.continuous=false; rec.interimResults=false; rec.maxAlternatives=1;
-  let got=false;
-  rec.onresult=e=>{ let t=''; for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) t+=e.results[i][0].transcript; if(t){ got=true; append(t); } };
-  rec.onerror=e=>{ const err=e&&e.error; if(err==='not-allowed'||err==='service-not-allowed'||err==='audio-capture') onFail(); };
-  rec.onend=()=>{ if(activeRec===rec){ activeRec=null; clearTimeout(recTimer); } setBtn(false); };
-  activeRec=rec;
-  // pequeña pausa para que el sistema suelte el micro de la vez anterior
-  setTimeout(()=>{ if(activeRec!==rec) return; try{ rec.start(); setBtn(true); recTimer=setTimeout(stopRec,60000); }catch(e){ activeRec=null; setBtn(false); onFail(); } }, 250);
+let SRI=null, recOn=false, recCtx=null, recIdle=null, recHard=null;
+function getRec(){
+  if(SRI) return SRI;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return null;
+  let r; try{ r=new SR(); }catch(e){ return null; }
+  r.lang='es-ES'; r.continuous=true; r.interimResults=true; r.maxAlternatives=1;
+  r.onresult=e=>{
+    if(!recCtx) return;
+    let t=''; for(let i=0;i<e.results.length;i++) t+=e.results[i][0].transcript;
+    t=t.trim(); if(!t) return;
+    recCtx.got=true; clearTimeout(recIdle);
+    recCtx.set(recCtx.base ? recCtx.base.replace(/\s*$/,' ')+t : t.charAt(0).toUpperCase()+t.slice(1));
+  };
+  r.onerror=e=>{ const err=e&&e.error; if(recCtx && (err==='not-allowed'||err==='service-not-allowed'||err==='audio-capture')){ const f=recCtx.fail; endRec(); f(); } };
+  r.onend=()=>endRec();
+  SRI=r; return r;
+}
+function endRec(){
+  clearTimeout(recIdle); clearTimeout(recHard);
+  const c=recCtx; recCtx=null; recOn=false;
+  if(c){ c.btn(false); c.done&&c.done(); if(!c.got) toast('No te he oído. Pulsa otra vez el micro.'); }
+}
+function stopRec(){
+  if(!SRI || !recOn){ endRec(); return; }
+  try{ SRI.stop(); }catch(e){}
+  // si el iPhone no avisa de que ha terminado, se fuerza (solo para esta misma sesión)
+  const ctx=recCtx;
+  setTimeout(()=>{ if(recOn && recCtx===ctx){ try{ SRI.abort(); }catch(e){} endRec(); } }, 1500);
+}
+function browserDictate(getText, setText, setBtn, onFail, onDone){
+  const r=getRec(); if(!r) return false;
+  if(recOn){ stopRec(); return true; }
+  recCtx={ base:getText(), set:setText, btn:setBtn, fail:onFail, done:onDone, got:false };
+  const go=()=>{
+    try{ r.start(); recOn=true; setBtn(true);
+      recIdle=setTimeout(()=>{ if(recOn && recCtx && !recCtx.got){ try{ r.abort(); }catch(e){} SRI=null; endRec(); } }, 8000);
+      recHard=setTimeout(stopRec, 120000);
+    }catch(e){
+      // se había quedado una sesión abierta: se cierra y se reintenta una vez con un reconocedor limpio
+      try{ r.abort(); }catch(_){} SRI=null;
+      const r2=getRec(); if(!r2){ endRec(); onFail(); return; }
+      setTimeout(()=>{ try{ r2.start(); recOn=true; setBtn(true); recHard=setTimeout(stopRec,120000); }catch(_){ const f=onFail; recCtx=null; setBtn(false); f(); } }, 300);
+    }
+  };
+  go();
   return true;
 }
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') stopRec(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden' && recOn) stopRec(); });
 
 let dict=null, rec=null, listening=false;
 try{ if(window.claude&&claude.use) claude.use('dictation').then(d=>{dict=d;}).catch(()=>{}); }catch(e){}
@@ -1632,16 +1660,16 @@ function setupMic(ta){
   const append=t=>{ if(!t) return; ta.value=(ta.value?ta.value.replace(/\s*$/,' '):'')+t.trim(); S.draft.notes=ta.value; saveState(); };
   const setBtn=on=>{ listening=on; b.textContent=on?'⏹ Parar':'🎤 Dictar'; b.classList.toggle('pri',on); };
   b.onclick=()=>{
-    if(listening){ if(dict&&dict.active()) dict.stop(); stopRec(); setBtn(false); return; }
+    if(listening){ if(dict&&dict.active()) dict.stop(); stopRec(); return; }
     if(dict){ // escritorio (Chrome / app de Claude)
       dict.onFinal(({text})=>append(text)); dict.onState(({state})=>setBtn(state!=='idle'));
       dict.start({language:'es'}).catch(()=>{ kbTip(ta); }); return;
     }
-    if(browserDictate(append, setBtn, ()=>kbTip(ta))) return;
+    if(browserDictate(()=>ta.value, v=>{ ta.value=v; S.draft.notes=v; }, setBtn, ()=>kbTip(ta), ()=>saveState())) return;
     kbTip(ta);
   };
 }
-function kbTip(ta){ ta.focus(); try{ ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){} toast('Ahora pulsa el 🎤 del teclado (abajo a la derecha) y habla'); }
+function kbTip(ta){ ta.focus(); try{ ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){} toast('Este navegador no deja dictar aquí: usa el 🎤 del teclado'); }
 
 // ====== TEMPORIZADOR ======
 let tEnd=0, tInt=null;
