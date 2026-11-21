@@ -1523,13 +1523,12 @@ function bindCoach(v){
   v.querySelectorAll('[data-gq]').forEach(b=>b.onclick=()=>askCoach(b.dataset.gq));
   const send=document.getElementById('gsend'); if(send){ const ta=document.getElementById('gq');
     send.onclick=()=>{ const q=ta.value; ta.value=''; askCoach(q); };
-    const mic=document.getElementById('gmic'); mic.onclick=()=>{
-      const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-      if(!SR){ ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); return; }
-      try{ const rec=new SR(); rec.lang='es-ES'; rec.interimResults=false; mic.textContent='⏺';
-        rec.onresult=e=>{ ta.value=(ta.value?ta.value+' ':'')+e.results[0][0].transcript; };
-        rec.onerror=()=>{ mic.textContent='🎤'; ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); };
-        rec.onend=()=>{ mic.textContent='🎤'; }; rec.start(); }catch(e){ ta.focus(); }
+    const mic=document.getElementById('gmic'); let on=false;
+    const setBtn=v=>{ on=v; mic.textContent=v?'⏹':'🎤'; mic.classList.toggle('pri',v); };
+    mic.onclick=()=>{
+      if(on){ stopRec(); setBtn(false); return; }
+      const ok=browserDictate(t=>{ ta.value=(ta.value?ta.value.replace(/\s*$/,' '):'')+t.trim(); }, setBtn, ()=>{ ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); });
+      if(!ok){ ta.focus(); toast('Pulsa el 🎤 del teclado del iPhone y habla'); }
     }; }
 }
 
@@ -1598,6 +1597,28 @@ async function finish(){
 }
 
 // ====== DICTADO ======
+// Reconocimiento de voz del navegador. En iPhone (Safari y Chrome usan el mismo motor) una sesión
+// que no se cierra bien deja el micro encendido sin escuchar: siempre se aborta la anterior,
+// una frase por pulsación y corte de seguridad a los 60 s.
+let activeRec=null, recTimer=null;
+function stopRec(){ if(activeRec){ const r=activeRec; activeRec=null; try{ r.onresult=null; r.abort(); }catch(e){} } clearTimeout(recTimer); }
+function browserDictate(append, setBtn, onFail){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR) return false;
+  stopRec();
+  let rec; try{ rec=new SR(); }catch(e){ return false; }
+  rec.lang='es-ES'; rec.continuous=false; rec.interimResults=false; rec.maxAlternatives=1;
+  let got=false;
+  rec.onresult=e=>{ let t=''; for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) t+=e.results[i][0].transcript; if(t){ got=true; append(t); } };
+  rec.onerror=e=>{ const err=e&&e.error; if(err==='not-allowed'||err==='service-not-allowed'||err==='audio-capture') onFail(); };
+  rec.onend=()=>{ if(activeRec===rec){ activeRec=null; clearTimeout(recTimer); } setBtn(false); };
+  activeRec=rec;
+  // pequeña pausa para que el sistema suelte el micro de la vez anterior
+  setTimeout(()=>{ if(activeRec!==rec) return; try{ rec.start(); setBtn(true); recTimer=setTimeout(stopRec,60000); }catch(e){ activeRec=null; setBtn(false); onFail(); } }, 250);
+  return true;
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') stopRec(); });
+
 let dict=null, rec=null, listening=false;
 try{ if(window.claude&&claude.use) claude.use('dictation').then(d=>{dict=d;}).catch(()=>{}); }catch(e){}
 function setupMic(ta){
@@ -1605,21 +1626,12 @@ function setupMic(ta){
   const append=t=>{ if(!t) return; ta.value=(ta.value?ta.value.replace(/\s*$/,' '):'')+t.trim(); S.draft.notes=ta.value; saveState(); };
   const setBtn=on=>{ listening=on; b.textContent=on?'⏹ Parar':'🎤 Dictar'; b.classList.toggle('pri',on); };
   b.onclick=()=>{
-    if(listening){ if(dict&&dict.active()) dict.stop(); if(rec) rec.stop(); setBtn(false); return; }
+    if(listening){ if(dict&&dict.active()) dict.stop(); stopRec(); setBtn(false); return; }
     if(dict){ // escritorio (Chrome / app de Claude)
       dict.onFinal(({text})=>append(text)); dict.onState(({state})=>setBtn(state!=='idle'));
       dict.start({language:'es'}).catch(()=>{ kbTip(ta); }); return;
     }
-    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(SR){
-      try{
-        rec=new SR(); rec.lang='es-ES'; rec.continuous=true; rec.interimResults=false;
-        rec.onresult=e=>{ for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) append(e.results[i][0].transcript); };
-        rec.onerror=()=>{ setBtn(false); kbTip(ta); };
-        rec.onend=()=>setBtn(false);
-        rec.start(); setBtn(true); return;
-      }catch(e){}
-    }
+    if(browserDictate(append, setBtn, ()=>kbTip(ta))) return;
     kbTip(ta);
   };
 }
