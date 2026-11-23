@@ -637,6 +637,22 @@ const FOODS = {
   cereales:   { n: 'Cereales sin azúcar / papilla 8 cereales', k: 375, p: 8, c: 80, g: 2 },
   gazpacho:   { n: 'Gazpacho', k: 40, p: 1, c: 4, g: 2.5 },
   pepinillos: { n: 'Pepinillos', k: 15, p: 0.5, c: 2, g: 0.2 },
+  carrillera: { n: 'Carrillera de ternera (cruda)', k: 150, p: 20, c: 0, g: 7.5 },
+  burrata:    { n: 'Burrata', k: 230, p: 13, c: 2, g: 19 },
+  ricotta:    { n: 'Ricotta', k: 150, p: 10, c: 3, g: 11 },
+  quesocrema: { n: 'Queso crema light', k: 150, p: 7, c: 4, g: 12 },
+  alubias:    { n: 'Alubias / frijoles (bote, escurridos)', k: 95, p: 6.5, c: 13, g: 0.5 },
+  maiz:       { n: 'Maíz dulce (lata)', k: 80, p: 3, c: 15, g: 1.2 },
+  masapizza:  { n: 'Masa de pizza fresca (cereales y semillas)', k: 260, p: 8, c: 46, g: 4.5 },
+  piadina:    { n: 'Piadina (1 u ≈ 80 g)', k: 300, p: 8, c: 50, g: 7 },
+  pastaleg:   { n: 'Pasta de legumbre (en seco)', k: 340, p: 24, c: 48, g: 3 },
+  tofu:       { n: 'Tofu', k: 120, p: 13, c: 2, g: 7 },
+  harina:     { n: 'Harina de trigo', k: 340, p: 10, c: 72, g: 1.5 },
+  aceitunas:  { n: 'Aceitunas', k: 145, p: 1, c: 1, g: 15 },
+  guacamole:  { n: 'Guacamole', k: 150, p: 2, c: 6, g: 13 },
+  granola:    { n: 'Granola casera de avena y frutos secos', k: 400, p: 11, c: 60, g: 12 },
+  salmonahu:  { n: 'Salmón ahumado', k: 180, p: 22, c: 0, g: 10 },
+  feta:       { n: 'Queso feta', k: 265, p: 14, c: 4, g: 21 },
   atun:       { n: 'Atún al natural (lata, escurrido)', k: 105, p: 24, c: 0, g: 1 },
   gambas:     { n: 'Gambas / langostinos (pelados)', k: 85, p: 19, c: 0, g: 1 },
   huevo:      { n: 'Huevo (1 u ≈ 60 g)', k: 145, p: 12.5, c: 0.7, g: 10 },
@@ -689,86 +705,1791 @@ const TARGETS = {
   rest:  { name: 'Día de descanso', k: 2100, p: 165, c: 190, g: 75 },
 };
 
-// Menú semanal tipo, con tus platos (Excel) y la estructura de tu plan de TC Nutrition
+// Menú semanal tipo: mezcla tus platos del Excel con las recetas de tus planes de TC Nutrition
+// (Bajar peso 1, 2, 3 y 4, y Mantener), con las cantidades ajustadas a tus objetivos actuales.
 // [alimento, gramos]
-const DESAYUNO_SALADO = [['pan', 60], ['aceite', 5], ['huevo', 100], ['jamon', 50], ['naranja', 180]];
 const ENTRENO = [['platano', 200], ['whey', 30], ['bebavena', 350]];
 const MENU = [
-  { day: 'Lunes', type: 'train', meals: [
-    { n: 'Desayuno · 08:00', items: DESAYUNO_SALADO },
-    { n: 'Comida · 14:30', r: 'arrozpollo', items: [['arroz', 100], ['pollo', 200], ['verdura', 200], ['aceite', 10], ['manzana', 180]] },
-    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
-    { n: 'Cena · 21:30', r: 'revuelto', items: [['huevo', 180], ['guisantes', 150], ['jamon', 40], ['pan', 60], ['aceite', 5], ['gelatina', 200]] },
-  ]},
-  { day: 'Martes', type: 'train', meals: [
-    { n: 'Desayuno · 08:00', r: 'oats', items: [['avena', 60], ['skyr', 125], ['leche', 120], ['chia', 10], ['whey', 20], ['rojos', 80], ['nueces', 15]] },
-    { n: 'Comida · 14:30', r: 'noodles', items: [['arroz', 90], ['pollo', 200], ['verdura', 200], ['soja', 15], ['aceite', 10], ['kiwi', 150]] },
-    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
-    { n: 'Cena · 21:30', r: 'espada', items: [['espada', 200], ['cuscus', 60], ['verdura', 200], ['aceite', 10], ['gelatina', 200]] },
-  ]},
-  { day: 'Miércoles', type: 'train', meals: [
-    { n: 'Desayuno · 08:00', items: DESAYUNO_SALADO },
-    { n: 'Comida · 14:30', r: 'enslentejas', items: [['lentejas', 250], ['huevo', 60], ['pavof', 80], ['verdura', 200], ['aceite', 10], ['naranja', 180]] },
-    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
-    { n: 'Cena · 21:30', r: 'fajitas', items: [['tortillaw', 120], ['ternera', 160], ['verdura', 150], ['tomatefr', 50], ['mozza', 50], ['gelatina', 200]] },
-  ]},
-  { day: 'Jueves', type: 'train', meals: [
-    { n: 'Desayuno · 08:00', r: 'porridge', items: [['avena', 70], ['leche', 300], ['whey', 20], ['nueces', 15]] },
-    { n: 'Comida · 14:30', r: 'enspasta', items: [['pasta', 90], ['atun', 120], ['huevo', 60], ['verdura', 200], ['aceite', 10], ['manzana', 180]] },
-    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
-    { n: 'Cena · 21:30', r: 'lubina', items: [['merluza', 250], ['patata', 300], ['verdura', 200], ['tomatefr', 50], ['aceite', 10], ['gelatina', 200]] },
-  ]},
-  { day: 'Viernes', type: 'train', meals: [
-    { n: 'Desayuno · 08:00', items: DESAYUNO_SALADO },
-    { n: 'Comida · 14:30', r: 'carbonara', items: [['pasta', 100], ['huevo', 120], ['jamon', 40], ['bacon', 10], ['queso', 10], ['verdura', 150], ['naranja', 180]] },
-    { n: 'Entreno · 17:30 (plátano antes, batido después)', items: ENTRENO },
-    { n: 'Cena · 21:30', r: 'pizza', items: [['tortillaw', 120], ['mozza', 60], ['pavof', 110], ['tomatefr', 60], ['verdura', 100], ['aceite', 5], ['gelatina', 200]] },
-  ]},
-  { day: 'Sábado', type: 'rest', meals: [
-    { n: 'Desayuno · 09:30', items: DESAYUNO_SALADO },
-    { n: 'Comida · 14:30', r: 'albondigas', items: [['ternera', 180], ['patata', 250], ['tomatefr', 100], ['verdura', 100], ['aceite', 10]] },
-    { n: 'Merienda o recena', items: [['batido0', 250], ['whey', 15], ['rojos', 100], ['choco', 20]] },
-    { n: 'Cena · 21:30', r: 'sandwich', items: [['pan', 100], ['pollo', 160], ['bacon', 20], ['tomate', 80], ['pepinillos', 30], ['verdura', 80]] },
-  ]},
-  { day: 'Domingo', type: 'rest', meals: [
-    { n: 'Desayuno · 09:30', items: DESAYUNO_SALADO },
-    { n: 'Comida · 14:30', items: [['verdura', 300], ['lomo', 200], ['patata', 200], ['aceite', 10], ['gazpacho', 250]] },
-    { n: 'Merienda o recena', items: [['batido0', 250], ['whey', 15], ['manzana', 180]] },
-    { n: 'Cena · 21:30 (picoteo)', r: 'pulpo', items: [['pulpo', 220], ['patata', 150], ['verdura', 200], ['aceite', 10], ['edamame', 80], ['gelatina', 200]] },
-  ]},
+ {
+  "day": "Lunes",
+  "type": "train",
+  "meals": [
+   {
+    "n": "Desayuno · 08:00",
+    "r": "salado",
+    "items": [
+     [
+      "pan",
+      60
+     ],
+     [
+      "aceite",
+      5
+     ],
+     [
+      "huevo",
+      100
+     ],
+     [
+      "jamon",
+      50
+     ],
+     [
+      "naranja",
+      180
+     ]
+    ]
+   },
+   {
+    "n": "Comida · 14:30",
+    "r": "bolternera",
+    "items": [
+     [
+      "ternera",
+      200
+     ],
+     [
+      "arroz",
+      100
+     ],
+     [
+      "verdura",
+      250
+     ],
+     [
+      "soja",
+      15
+     ],
+     [
+      "aceite",
+      9
+     ],
+     [
+      "nueces",
+      10
+     ],
+     [
+      "kiwi",
+      150
+     ]
+    ]
+   },
+   {
+    "n": "Entreno · 17:30 (plátano antes, batido después)",
+    "items": ENTRENO
+   },
+   {
+    "n": "Cena · 21:30",
+    "r": "dorada",
+    "items": [
+     [
+      "merluza",
+      250
+     ],
+     [
+      "patata",
+      300
+     ],
+     [
+      "verdura",
+      150
+     ],
+     [
+      "aceite",
+      9
+     ],
+     [
+      "gelatina",
+      200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "day": "Martes",
+  "type": "train",
+  "meals": [
+   {
+    "n": "Desayuno · 08:00",
+    "r": "oats",
+    "items": [
+     [
+      "avena",
+      50
+     ],
+     [
+      "skyr",
+      125
+     ],
+     [
+      "leche",
+      120
+     ],
+     [
+      "chia",
+      10
+     ],
+     [
+      "whey",
+      20
+     ],
+     [
+      "rojos",
+      80
+     ],
+     [
+      "nueces",
+      20
+     ]
+    ]
+   },
+   {
+    "n": "Comida · 14:30",
+    "r": "ricotta",
+    "items": [
+     [
+      "pasta",
+      85
+     ],
+     [
+      "ricotta",
+      60
+     ],
+     [
+      "pollo",
+      180
+     ],
+     [
+      "verdura",
+      150
+     ],
+     [
+      "aceite",
+      10
+     ],
+     [
+      "manzana",
+      180
+     ]
+    ]
+   },
+   {
+    "n": "Entreno · 17:30 (plátano antes, batido después)",
+    "items": ENTRENO
+   },
+   {
+    "n": "Cena · 21:30",
+    "r": "boniato",
+    "items": [
+     [
+      "boniato",
+      260
+     ],
+     [
+      "pollo",
+      170
+     ],
+     [
+      "verdura",
+      150
+     ],
+     [
+      "mozza",
+      30
+     ],
+     [
+      "aceite",
+      10
+     ],
+     [
+      "gelatina",
+      200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "day": "Miércoles",
+  "type": "train",
+  "meals": [
+   {
+    "n": "Desayuno · 08:00",
+    "r": "granola",
+    "items": [
+     [
+      "granola",
+      50
+     ],
+     [
+      "skyr",
+      250
+     ],
+     [
+      "rojos",
+      100
+     ],
+     [
+      "nueces",
+      10
+     ]
+    ]
+   },
+   {
+    "n": "Comida · 14:30",
+    "r": "lentejas",
+    "items": [
+     [
+      "lentejas",
+      300
+     ],
+     [
+      "pollo",
+      130
+     ],
+     [
+      "arroz",
+      30
+     ],
+     [
+      "verdura",
+      150
+     ],
+     [
+      "tomatefr",
+      60
+     ],
+     [
+      "aceite",
+      14
+     ],
+     [
+      "aguacate",
+      50
+     ],
+     [
+      "naranja",
+      180
+     ]
+    ]
+   },
+   {
+    "n": "Entreno · 17:30 (plátano antes, batido después)",
+    "items": ENTRENO
+   },
+   {
+    "n": "Cena · 21:30",
+    "r": "pizzaromana",
+    "items": [
+     [
+      "masapizza",
+      115
+     ],
+     [
+      "tomatefr",
+      30
+     ],
+     [
+      "mozza",
+      40
+     ],
+     [
+      "atun",
+      50
+     ],
+     [
+      "pavof",
+      30
+     ],
+     [
+      "verdura",
+      70
+     ],
+     [
+      "aceitunas",
+      12
+     ],
+     [
+      "aceite",
+      8
+     ],
+     [
+      "gelatina",
+      200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "day": "Jueves",
+  "type": "train",
+  "meals": [
+   {
+    "n": "Desayuno · 08:00",
+    "r": "porridge",
+    "items": [
+     [
+      "avena",
+      70
+     ],
+     [
+      "leche",
+      300
+     ],
+     [
+      "whey",
+      20
+     ],
+     [
+      "nueces",
+      25
+     ]
+    ]
+   },
+   {
+    "n": "Comida · 14:30",
+    "r": "polloasiatico",
+    "items": [
+     [
+      "pollo",
+      200
+     ],
+     [
+      "arroz",
+      80
+     ],
+     [
+      "verdura",
+      200
+     ],
+     [
+      "soja",
+      15
+     ],
+     [
+      "naranja",
+      50
+     ],
+     [
+      "aceite",
+      14
+     ],
+     [
+      "manzana",
+      180
+     ]
+    ]
+   },
+   {
+    "n": "Entreno · 17:30 (plátano antes, batido después)",
+    "items": ENTRENO
+   },
+   {
+    "n": "Cena · 21:30",
+    "r": "merluzasalsa",
+    "items": [
+     [
+      "merluza",
+      250
+     ],
+     [
+      "harina",
+      15
+     ],
+     [
+      "patata",
+      220
+     ],
+     [
+      "verdura",
+      100
+     ],
+     [
+      "aceite",
+      14
+     ],
+     [
+      "gelatina",
+      200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "day": "Viernes",
+  "type": "train",
+  "meals": [
+   {
+    "n": "Desayuno · 08:00",
+    "r": "salado",
+    "items": [
+     [
+      "pan",
+      60
+     ],
+     [
+      "aguacate",
+      60
+     ],
+     [
+      "huevo",
+      100
+     ],
+     [
+      "salmonahu",
+      50
+     ],
+     [
+      "naranja",
+      180
+     ]
+    ]
+   },
+   {
+    "n": "Comida · 14:30",
+    "r": "noquis",
+    "items": [
+     [
+      "noquis",
+      270
+     ],
+     [
+      "pollo",
+      180
+     ],
+     [
+      "verdura",
+      150
+     ],
+     [
+      "quesocrema",
+      26
+     ],
+     [
+      "aceite",
+      10
+     ],
+     [
+      "kiwi",
+      150
+     ]
+    ]
+   },
+   {
+    "n": "Entreno · 17:30 (plátano antes, batido después)",
+    "items": ENTRENO
+   },
+   {
+    "n": "Cena · 21:30",
+    "r": "burrito",
+    "items": [
+     [
+      "alubias",
+      215
+     ],
+     [
+      "maiz",
+      50
+     ],
+     [
+      "pollo",
+      150
+     ],
+     [
+      "verdura",
+      150
+     ],
+     [
+      "guacamole",
+      80
+     ],
+     [
+      "gelatina",
+      200
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "day": "Sábado",
+  "type": "rest",
+  "meals": [
+   {
+    "n": "Desayuno · 09:30",
+    "r": "setas",
+    "items": [
+     [
+      "huevo",
+      180
+     ],
+     [
+      "verdura",
+      250
+     ],
+     [
+      "pan",
+      60
+     ],
+     [
+      "aceite",
+      5
+     ],
+     [
+      "naranja",
+      180
+     ]
+    ]
+   },
+   {
+    "n": "Comida · 14:30",
+    "r": "carrilleras",
+    "items": [
+     [
+      "carrillera",
+      220
+     ],
+     [
+      "patata",
+      230
+     ],
+     [
+      "verdura",
+      150
+     ],
+     [
+      "harina",
+      10
+     ],
+     [
+      "aceite",
+      9
+     ]
+    ]
+   },
+   {
+    "n": "Merienda o recena",
+    "items": [
+     [
+      "batido0",
+      250
+     ],
+     [
+      "whey",
+      15
+     ],
+     [
+      "rojos",
+      100
+     ],
+     [
+      "choco",
+      10
+     ]
+    ]
+   },
+   {
+    "n": "Cena · 21:30",
+    "r": "pimientos",
+    "items": [
+     [
+      "verdura",
+      300
+     ],
+     [
+      "atun",
+      150
+     ],
+     [
+      "huevo",
+      60
+     ],
+     [
+      "pan",
+      60
+     ],
+     [
+      "aceite",
+      5
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "day": "Domingo",
+  "type": "rest",
+  "meals": [
+   {
+    "n": "Desayuno · 09:30",
+    "r": "pancakes",
+    "items": [
+     [
+      "avena",
+      60
+     ],
+     [
+      "claras",
+      200
+     ],
+     [
+      "huevo",
+      60
+     ],
+     [
+      "rojos",
+      100
+     ],
+     [
+      "miel",
+      10
+     ]
+    ]
+   },
+   {
+    "n": "Comida · 14:30",
+    "r": "garbanzosburrata",
+    "items": [
+     [
+      "garbanzos",
+      215
+     ],
+     [
+      "burrata",
+      75
+     ],
+     [
+      "pollo",
+      120
+     ],
+     [
+      "tomatefr",
+      45
+     ],
+     [
+      "verdura",
+      100
+     ],
+     [
+      "aceite",
+      5
+     ],
+     [
+      "arroz",
+      20
+     ]
+    ]
+   },
+   {
+    "n": "Merienda o recena",
+    "items": [
+     [
+      "skyr",
+      250
+     ],
+     [
+      "manzana",
+      180
+     ],
+     [
+      "nueces",
+      15
+     ]
+    ]
+   },
+   {
+    "n": "Cena · 21:30 (picoteo)",
+    "r": "fritata",
+    "items": [
+     [
+      "huevo",
+      65
+     ],
+     [
+      "claras",
+      150
+     ],
+     [
+      "verdura",
+      200
+     ],
+     [
+      "queso",
+      15
+     ],
+     [
+      "aceite",
+      5
+     ],
+     [
+      "pan",
+      80
+     ],
+     [
+      "gelatina",
+      200
+     ]
+    ]
+   }
+  ]
+ }
 ];
 
 const RECIPES = {
-  oats: { n: 'Overnight de avena, yogur, chía y proteína', t: '5 min (la noche antes)',
-    steps: ['En un táper: avena, skyr, leche, chía y la whey. Remueve bien.', 'Nevera toda la noche.', 'Por la mañana: frutos rojos por encima.'] },
-  porridge: { n: 'Porridge de avena proteico', t: '8 min',
-    steps: ['Disuelve la whey en la leche fría (si la echas en caliente se apelmaza).', 'Cuece la avena en esa leche a fuego medio 4–5 min, removiendo.', 'Canela y frutos secos por encima.'] },
-  arrozpollo: { n: 'Arroz con pollo y verduras', t: '25 min',
-    steps: ['Dora el pollo en dados con la mitad del aceite y resérvalo.', 'Sofríe pimiento, cebolla, judía verde o lo que tengas con el resto del aceite.', 'Añade el arroz, nácaralo 1 min, luego el pollo, pimentón, una pizca de azafrán o colorante y el doble de agua o caldo.', '15–18 min a fuego medio. Reposa 5 min.'] },
-  noodles: { n: 'Noodles de arroz con pollo y verduras', t: '15 min',
-    steps: ['Hidrata o cuece los noodles de arroz según el paquete.', 'Saltea a fuego fuerte el pollo en tiras con el aceite y añade las verduras (pimiento, zanahoria, cebolla, col).', 'Añade los noodles y la soja (más jengibre y ajo si te gusta) y saltea 2 min.'] },
-  revuelto: { n: 'Revuelto de guisantes con jamón', t: '10 min',
-    steps: ['Saltea cebolla en el aceite, añade los guisantes y 3–4 min tapado.', 'Añade el jamón en taquitos y luego los huevos batidos.', 'Remueve a fuego bajo hasta que cuaje jugoso. Con el pan.'] },
-  espada: { n: 'Pez espada con cuscús y verduras', t: '15 min',
-    steps: ['Cuscús: el mismo volumen de agua hirviendo con sal, tapa 5 min y suéltalo con un tenedor.', 'Verduras salteadas o al vapor.', 'Pez espada a la plancha muy caliente, 2 min por lado, con limón y ajo y perejil.'] },
-  enslentejas: { n: 'Ensalada de lentejas con huevo y pavo', t: '10 min',
-    steps: ['Lentejas de bote lavadas y escurridas.', 'Mézclalas con tomate, cebolla, pepino, el huevo duro y el pavo en tacos.', 'Aliña con el aceite, vinagre, sal y comino.'] },
-  fajitas: { n: 'Fajitas de carne picada', t: '15 min',
-    steps: ['Saltea pimiento y cebolla en tiras.', 'Añade la carne picada con comino, pimentón y ajo en polvo.', 'Añade el tomate y deja reducir 3 min.', 'Rellena las tortillas, pon la mozzarella y 1 min a la sartén para que funda.'] },
-  enspasta: { n: 'Ensalada de pasta con atún', t: '15 min',
-    steps: ['Cuece la pasta y enfríala con agua.', 'Mézclala con el atún, huevo duro, tomate cherry, maíz o pepino y cebolla.', 'Aliña con el aceite y vinagre. Aguanta 2 días en la nevera.'] },
-  lubina: { n: 'Lubina con patatas y pisto', t: '30 min',
-    steps: ['Patata en rodajas al microondas 6–8 min tapada, o cocida.', 'Pisto: calabacín, pimiento y cebolla pochados con el tomate.', 'Lubina a la plancha, primero por el lado de la piel, 3–4 min.'] },
-  carbonara: { n: 'Carbonara (versión que cuadra)', t: '15 min',
-    steps: ['Cuece la pasta y guarda un vaso del agua de cocción.', 'Dora el bacon y el jamón en la sartén sin aceite.', 'Bate los huevos con el queso rallado y pimienta.', 'Con el fuego apagado, mezcla la pasta con el bacon, el huevo y un chorrito del agua. Remueve hasta que quede cremosa: no debe cuajar.'] },
-  pizza: { n: 'Pizza de tortilla', t: '12 min',
-    steps: ['Base de tortilla de trigo con tomate, mozzarella, pavo, champiñón y pimiento.', 'Horno a 220 °C 8–10 min, hasta que quede crujiente.', 'Orégano por encima.'] },
-  albondigas: { n: 'Albóndigas en salsa con patatas al horno', t: '35 min',
-    steps: ['Picada con ajo, perejil, sal y 1 huevo si quieres. Forma las albóndigas.', 'Dóralas en la sartén con la mitad del aceite y añade el tomate. 15 min tapadas.', 'Patatas en gajos con el resto del aceite y pimentón, 25 min a 200 °C. Igual que las fritas, pero cuadra.'] },
-  sandwich: { n: 'Sándwich de pollo, bacon y tomate', t: '10 min',
-    steps: ['Pollo en filetes finos a la plancha con sal y pimienta.', 'Bacon crujiente en la sartén sin aceite.', 'Pan tostado con lechuga, tomate, pepinillos, el pollo y el bacon. Mostaza si te gusta.'] },
-  pulpo: { n: 'Pulpo a la gallega rápido (cena de picoteo)', t: '10 min',
-    steps: ['Pulpo cocido (envasado) cortado en rodajas y templado 1 min en el microondas.', 'Base de patata cocida en rodajas, encima el pulpo, el aceite, pimentón y sal gorda.', 'De acompañamiento: ensalada y edamame con sal.'] },
+ "salado": {
+  "n": "Desayuno salado (pan, huevos y jamón o salmón)",
+  "t": "10 min",
+  "steps": [
+   "Tuesta el pan y ponle el aceite o el aguacate.",
+   "Huevos a la plancha, revueltos o cocidos.",
+   "Acompaña con jamón, pavo, lomo, jamón cocido o salmón ahumado (valen igual) y la fruta."
+  ]
+ },
+ "bolternera": {
+  "n": "Bol de ternera con soja, verduras y arroz",
+  "t": "20 min",
+  "steps": [
+   "Cuece el arroz.",
+   "Saltea las verduras troceadas (espinaca, zanahoria, calabacín…) con el aceite: que queden crujientes. Resérvalas.",
+   "En la misma sartén, dora la ternera en tiras con un chorro de soja, vuelta y vuelta.",
+   "Monta el bol y termina con los frutos secos (anacardos) o sésamo."
+  ]
+ },
+ "dorada": {
+  "n": "Dorada (o merluza) al papillote con patata",
+  "t": "20 min",
+  "steps": [
+   "Patata en rodajas finas como cama, el pescado limpio encima, sal, limón en rodajas y el aceite.",
+   "Cierra en estuche de vapor y 10 min al microondas a máxima potencia, o en papel de horno como un sobre, 15 min a 180 °C.",
+   "Quita piel y espinas y sirve con la verdura."
+  ]
+ },
+ "oats": {
+  "n": "Overnight de avena, yogur, chía y proteína",
+  "t": "5 min (la noche antes)",
+  "steps": [
+   "En un táper: avena, skyr, leche, chía y la whey. Remueve bien.",
+   "Nevera toda la noche.",
+   "Por la mañana: frutos rojos y nueces por encima."
+  ]
+ },
+ "ricotta": {
+  "n": "Pasta con salsa de ricotta, albahaca y pollo",
+  "t": "20 min",
+  "steps": [
+   "Cuece la pasta.",
+   "Dora el pollo en dados y resérvalo. En la misma sartén pocha cebolla y ajo con el aceite.",
+   "Añade medio vaso de agua y la ricotta desmenuzada y deja reducir removiendo hasta que quede cremosa.",
+   "Mezcla la pasta y el pollo y termina con albahaca y pimienta."
+  ]
+ },
+ "boniato": {
+  "n": "Boniato relleno de pollo gratinado",
+  "t": "45 min",
+  "steps": [
+   "Asa el boniato entero lavado 30–40 min a 200 °C (o airfryer) hasta que esté tierno.",
+   "Sofríe cebolla morada, ajo y verduras picadas con el aceite y añade el pollo en dados.",
+   "Abre el boniato a lo largo, vacíalo con una cuchara y mezcla la pulpa con el relleno.",
+   "Rellena las mitades, pon la mozzarella y gratina 5 min."
+  ]
+ },
+ "granola": {
+  "n": "Granola casera con skyr y fruta",
+  "t": "5 min (+ granola hecha)",
+  "steps": [
+   "Granola (se hace una vez y dura): mezcla 280 g de avena, 80 g de arroz hinchado, 80 g de almendras, canela y 130 g de compota de manzana. Hornea a 160 °C unos 25 min removiendo a mitad. Salen 10 raciones.",
+   "Cada mañana: skyr en un bol, la granola por encima y la fruta troceada."
+  ]
+ },
+ "lentejas": {
+  "n": "Lentejas guisadas con verduras y pollo",
+  "t": "25 min",
+  "steps": [
+   "Sofríe cebolla, ajo, pimiento y zanahoria picados con el aceite.",
+   "Añade el pollo en dados y dóralo.",
+   "Añade pimentón, el tomate, laurel y las lentejas de bote lavadas con un poco de agua. 10 min a fuego suave.",
+   "Sirve con el arroz. Si vas justo de tiempo: lentejas de bote con pisto de verduras."
+  ]
+ },
+ "pizzaromana": {
+  "n": "Pizza romana casera (media pizza)",
+  "t": "20 min",
+  "steps": [
+   "Horno o airfryer a 220 °C. Extiende la masa sobre papel de horno.",
+   "Tomate triturado con aceite, sal y pimienta; reparte la mozzarella, el atún, el jamón cocido, champiñón o pimiento y las aceitunas (y alcaparras si te gustan).",
+   "Unos 12–15 min hasta que el borde esté dorado. La otra mitad, para otro día."
+  ]
+ },
+ "porridge": {
+  "n": "Porridge de avena proteico",
+  "t": "8 min",
+  "steps": [
+   "Disuelve la whey en la leche fría.",
+   "Cuece la avena en esa leche a fuego medio 4–5 min removiendo.",
+   "Canela y nueces por encima."
+  ]
+ },
+ "polloasiatico": {
+  "n": "Pollo marinado asiático con arroz",
+  "t": "15 min (+2 h de marinado)",
+  "steps": [
+   "Marina el pollo en tiras con soja, zumo de limón y de naranja, ajo aplastado y jengibre, mínimo 2 h en la nevera (en bolsa zip).",
+   "Cuece el arroz y saltea las verduras con el aceite.",
+   "Dora el pollo en la sartén y sírvelo todo junto."
+  ]
+ },
+ "merluzasalsa": {
+  "n": "Merluza en salsa verde con patatas",
+  "t": "20 min",
+  "steps": [
+   "Patatas en rodajas al microondas 6–8 min tapadas, o cocidas.",
+   "Dora cebolla, ajo y perejil con el aceite. Añade la merluza, vuelta y vuelta 1 min.",
+   "Disuelve la harina en una taza de caldo de pescado, viértelo y deja espesar a fuego medio sin tapar.",
+   "Tapa, apaga el fuego, reposa 2 min y sirve con las patatas y la verdura."
+  ]
+ },
+ "noquis": {
+  "n": "Ñoquis con champiñones, mostaza, queso crema y pollo",
+  "t": "15 min",
+  "steps": [
+   "Dora la cebolla picada con el aceite y añade el pollo troceado.",
+   "Añade los champiñones laminados, los ñoquis y una cucharadita de mostaza de Dijon. 5 min dorando.",
+   "Añade un vaso de agua o caldo y el queso crema y deja que reduzca hasta tener una salsa cremosa."
+  ]
+ },
+ "burrito": {
+  "n": "Burrito bowl de pollo y frijoles",
+  "t": "15 min",
+  "steps": [
+   "Pollo a la plancha en tiras con comino y pimentón.",
+   "En un bol: frijoles lavados, maíz, tomate, lechuga y cebolla morada picada.",
+   "Encima el pollo y el guacamole. Aliña con lima o limón, cilantro y sal. Va bien con salsa de yogur."
+  ]
+ },
+ "setas": {
+  "n": "Revuelto de setas y ajo tierno",
+  "t": "15 min",
+  "steps": [
+   "Dora los ajos tiernos troceados con el aceite.",
+   "Añade las setas limpias y troceadas, sal y pimienta: 5–10 min (sin tapar si las quieres crujientes).",
+   "Añade los huevos y remueve hasta que cuajen jugosos. Perejil por encima y el pan al lado."
+  ]
+ },
+ "carrilleras": {
+  "n": "Carrilleras de ternera con verduras y patata",
+  "t": "2 h (olla rápida: 40 min)",
+  "steps": [
+   "Salpimienta las carrilleras, pásalas por la harina y séllalas en la cazuela con el aceite. Resérvalas.",
+   "En la misma cazuela dora puerro, zanahoria y cebolla picados 10–15 min.",
+   "Añade un chorro de vino, agua hasta cubrir y las carrilleras. 1 h 30 min tapado a fuego medio (o 35–40 min en olla rápida).",
+   "Tritura la salsa con las verduras y sirve con patata cocida o asada. Haz doble ración y congela."
+  ]
+ },
+ "pimientos": {
+  "n": "Pimientos tricolor con atún y huevo",
+  "t": "20 min",
+  "steps": [
+   "Pocha cebolla y ajo con el aceite y añade pimientos de colores en tiras (o calabacín o cherry).",
+   "Especia con comino, pimentón y pimienta y deja que se hagan 10 min.",
+   "Añade al final el atún escurrido (o salmón en lata, o gambas) y el huevo cocido. Con el pan."
+  ]
+ },
+ "pancakes": {
+  "n": "Tortitas de avena y claras",
+  "t": "10 min",
+  "steps": [
+   "Tritura la avena con las claras, el huevo, canela y una pizca de levadura.",
+   "Sartén antiadherente a fuego medio: un cucharón por tortita, 1–2 min por lado.",
+   "Por encima: frutos rojos y la miel."
+  ]
+ },
+ "garbanzosburrata": {
+  "n": "Sartén de garbanzos al curry con burrata y pollo",
+  "t": "15 min",
+  "steps": [
+   "Sofríe cebolla, ajo y pimiento verde con el aceite y dora el pollo en dados.",
+   "Añade los garbanzos lavados, el tomate, un chorrito de leche, curry, jengibre y sal. 5–7 min.",
+   "Sirve con la burrata abierta por encima."
+  ]
+ },
+ "fritata": {
+  "n": "Frittata de verduras al horno",
+  "t": "30 min",
+  "steps": [
+   "Saltea las verduras picadas (brócoli, zanahoria, calabacín…) 7 min con el aceite.",
+   "Bate el huevo, las claras, un chorrito de leche, el queso rallado y especias (cúrcuma, ajo, pimienta).",
+   "Mezcla con las verduras y hornea en molde a 180 °C unos 20 min (menos en airfryer). Gratina 3 min al final."
+  ]
+ },
+ "falafel": {
+  "n": "Falafel en airfryer con salsa de yogur",
+  "t": "30 min (+12 h remojo)",
+  "alt": true,
+  "items": [
+   [
+    "garbanzos",
+    250
+   ],
+   [
+    "aceite",
+    9
+   ],
+   [
+    "skyr",
+    125
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "tortillaw",
+    60
+   ]
+  ],
+  "steps": [
+   "Remoja 80 g de garbanzos secos 12 h (no valen de bote).",
+   "Tritura ajo, cebolleta, perejil y cilantro; añade los garbanzos escurridos, comino y sal hasta tener una pasta granulosa. 1 h a la nevera.",
+   "Haz bolitas, aplánalas un poco y airfryer a 190 °C unos 12–15 min, dándoles la vuelta.",
+   "Salsa: yogur con limón, sal, pimienta y ajo. Sírvelo con ensalada y tortilla."
+  ]
+ },
+ "sopathai": {
+  "n": "Sopa thai con gambas o tofu y noodles",
+  "t": "20 min",
+  "alt": true,
+  "items": [
+   [
+    "gambas",
+    150
+   ],
+   [
+    "arroz",
+    60
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "leche_coco",
+    50
+   ],
+   [
+    "cacahuete",
+    5
+   ],
+   [
+    "aceite",
+    5
+   ]
+  ],
+  "steps": [
+   "Sofríe cebolla, ajo y pimiento rojo con el aceite.",
+   "Añade las gambas o el tofu, la leche de coco, la crema de cacahuete, caldo y un toque de curry o soja.",
+   "Cuando hierva, añade los noodles de arroz y cuécelos según el paquete. Cilantro por encima."
+  ]
+ },
+ "musaka": {
+  "n": "Musaka de verduras con carne picada",
+  "t": "50 min",
+  "alt": true,
+  "items": [
+   [
+    "patata",
+    220
+   ],
+   [
+    "ternera",
+    150
+   ],
+   [
+    "verdura",
+    250
+   ],
+   [
+    "leche",
+    100
+   ],
+   [
+    "harina",
+    12
+   ],
+   [
+    "queso",
+    15
+   ],
+   [
+    "aceite",
+    9
+   ]
+  ],
+  "steps": [
+   "Patata en láminas finas y berenjena en rodajas, asadas 15 min a 200 °C.",
+   "Sofríe la carne picada con tomate y cebolla.",
+   "Bechamel ligera: tuesta la harina 1 min en la sartén y añade la leche poco a poco removiendo hasta que espese.",
+   "Capas de patata, berenjena y carne; bechamel y queso por encima. Horno 20 min a 190 °C."
+  ]
+ },
+ "cocido": {
+  "n": "Cocido de garbanzos con verduras y pollo",
+  "t": "40 min (olla rápida)",
+  "alt": true,
+  "items": [
+   [
+    "garbanzos",
+    250
+   ],
+   [
+    "pollo",
+    150
+   ],
+   [
+    "patata",
+    200
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "aceite",
+    9
+   ]
+  ],
+  "steps": [
+   "En la olla: patata, zanahoria, nabo, chirivía, apio y puerro troceados, el pollo y los garbanzos (secos remojados la noche antes, o de bote al final).",
+   "Cubre de agua, con pimentón, sal y pimienta, y 25 min en olla rápida (1 h 30 min en olla normal).",
+   "Sirve con un chorrito de aceite en crudo."
+  ]
+ },
+ "estofado": {
+  "n": "Estofado de ternera con patatas",
+  "t": "30 min (olla rápida)",
+  "alt": true,
+  "items": [
+   [
+    "ternera",
+    180
+   ],
+   [
+    "patata",
+    300
+   ],
+   [
+    "verdura",
+    150
+   ],
+   [
+    "guisantes",
+    40
+   ],
+   [
+    "aceite",
+    9
+   ]
+  ],
+  "steps": [
+   "Sofríe cebolla, ajo y pimiento verde picados con el aceite.",
+   "Añade la ternera en tacos, salpimienta y dórala.",
+   "Añade la patata en trozos, la zanahoria en rodajas, los guisantes, un chorro de vino blanco, laurel, azafrán y agua hasta cubrir.",
+   "Olla rápida 10–12 min (o 45 min en olla normal)."
+  ]
+ },
+ "cremacalabaza": {
+  "n": "Crema de calabaza asada, puerro y patata (+ pollo)",
+  "t": "35 min",
+  "alt": true,
+  "items": [
+   [
+    "verdura",
+    400
+   ],
+   [
+    "patata",
+    150
+   ],
+   [
+    "aceite",
+    9
+   ],
+   [
+    "pollo",
+    150
+   ],
+   [
+    "pan",
+    40
+   ]
+  ],
+  "steps": [
+   "Asa la calabaza en trozos 25 min a 200 °C.",
+   "Pocha el puerro con el aceite, añade la patata y la calabaza y cubre con agua o caldo. 15 min.",
+   "Tritura hasta que quede fina. Acompaña con pollo a la plancha o 2 huevos cocidos y pan."
+  ]
+ },
+ "nachos": {
+  "n": "Nachos caseros con carne picada",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "tortillaw",
+    72
+   ],
+   [
+    "ternera",
+    150
+   ],
+   [
+    "tomatefr",
+    60
+   ],
+   [
+    "mozza",
+    30
+   ],
+   [
+    "guacamole",
+    30
+   ],
+   [
+    "aceite",
+    5
+   ]
+  ],
+  "steps": [
+   "Corta las tortillas integrales en triángulos y mézclalas con el aceite, pimentón y ajo y cebolla en polvo.",
+   "Airfryer 5–7 min a 200 °C (o 10–14 min al horno).",
+   "Por encima: carne picada sofrita con tomate y comino, la mozzarella gratinada y el guacamole."
+  ]
+ },
+ "pizzarolls": {
+  "n": "Pizza rolls de piadina con queso y atún",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "piadina",
+    160
+   ],
+   [
+    "atun",
+    80
+   ],
+   [
+    "mozza",
+    50
+   ],
+   [
+    "tomatefr",
+    45
+   ]
+  ],
+  "steps": [
+   "Unta las piadinas con tomate concentrado y orégano.",
+   "Reparte el atún (o pavo) y la mozzarella.",
+   "Enrolla, corta en rollitos y airfryer u horno a 200 °C unos 8 min."
+  ]
+ },
+ "garbanzosespinacas": {
+  "n": "Garbanzos con espinacas salteados (+ huevo)",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "garbanzos",
+    250
+   ],
+   [
+    "verdura",
+    150
+   ],
+   [
+    "huevo",
+    120
+   ],
+   [
+    "aceite",
+    9
+   ],
+   [
+    "pan",
+    40
+   ]
+  ],
+  "steps": [
+   "Cuece o saltea las espinacas 5 min y escúrrelas.",
+   "Dora la cebolla con el aceite, añade los garbanzos y 5 min removiendo.",
+   "Añade las espinacas y comino y sirve con 2 huevos a la plancha o cocidos."
+  ]
+ },
+ "arrozmeloso": {
+  "n": "Arroz meloso con verduras y gambas o pollo",
+  "t": "25 min",
+  "alt": true,
+  "items": [
+   [
+    "arroz",
+    90
+   ],
+   [
+    "gambas",
+    180
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "tomatefr",
+    100
+   ],
+   [
+    "aceite",
+    9
+   ]
+  ],
+  "steps": [
+   "Rehoga las verduras troceadas con el aceite y añade el tomate hasta que se concentre.",
+   "Añade las gambas o el pollo, el caldo y, cuando hierva, el arroz.",
+   "Unos 15 min añadiendo caldo si hace falta, hasta que quede meloso."
+  ]
+ },
+ "noodlessarten": {
+  "n": "Noodles a la sartén con verduras y pollo",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "arroz",
+    80
+   ],
+   [
+    "pollo",
+    180
+   ],
+   [
+    "verdura",
+    250
+   ],
+   [
+    "soja",
+    15
+   ],
+   [
+    "aceite",
+    9
+   ]
+  ],
+  "steps": [
+   "Dora la cebolla, añade el resto de verduras y el pollo y saltea 3–5 min.",
+   "Añade un poco de caldo y soja y 5 min más.",
+   "Cuece los noodles en ese caldo según el paquete. Puedes dejarlos caldosos o secos."
+  ]
+ },
+ "picadahuevo": {
+  "n": "Carne picada con cebolla y huevo duro",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "ternera",
+    150
+   ],
+   [
+    "huevo",
+    120
+   ],
+   [
+    "verdura",
+    150
+   ],
+   [
+    "patata",
+    200
+   ],
+   [
+    "aceite",
+    9
+   ]
+  ],
+  "steps": [
+   "Pocha la cebolla con el aceite y añade la carne picada: 10 min removiendo.",
+   "Cuece los huevos 10 min, enfríalos y pélalos.",
+   "Sirve la carne con el huevo rallado por encima y patata cocida o asada."
+  ]
+ },
+ "arrozpollo": {
+  "n": "Arroz con pollo y verduras",
+  "t": "25 min",
+  "alt": true,
+  "items": [
+   [
+    "arroz",
+    100
+   ],
+   [
+    "pollo",
+    200
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "aceite",
+    10
+   ],
+   [
+    "manzana",
+    180
+   ]
+  ],
+  "steps": [
+   "Dora el pollo en dados con la mitad del aceite y resérvalo.",
+   "Sofríe pimiento, cebolla, judía verde o lo que tengas con el resto del aceite.",
+   "Añade el arroz, nácaralo 1 min, luego el pollo, pimentón, una pizca de azafrán o colorante y el doble de agua o caldo.",
+   "15–18 min a fuego medio. Reposa 5 min."
+  ]
+ },
+ "revuelto": {
+  "n": "Revuelto de guisantes con jamón",
+  "t": "10 min",
+  "alt": true,
+  "items": [
+   [
+    "huevo",
+    180
+   ],
+   [
+    "guisantes",
+    150
+   ],
+   [
+    "jamon",
+    40
+   ],
+   [
+    "pan",
+    60
+   ],
+   [
+    "aceite",
+    5
+   ],
+   [
+    "gelatina",
+    200
+   ]
+  ],
+  "steps": [
+   "Saltea cebolla en el aceite, añade los guisantes y 3–4 min tapado.",
+   "Añade el jamón en taquitos y luego los huevos batidos.",
+   "Remueve a fuego bajo hasta que cuaje jugoso. Con el pan."
+  ]
+ },
+ "noodles": {
+  "n": "Noodles de arroz con pollo y verduras",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "arroz",
+    90
+   ],
+   [
+    "pollo",
+    200
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "soja",
+    15
+   ],
+   [
+    "aceite",
+    10
+   ],
+   [
+    "kiwi",
+    150
+   ]
+  ],
+  "steps": [
+   "Hidrata o cuece los noodles de arroz según el paquete.",
+   "Saltea a fuego fuerte el pollo en tiras con el aceite y añade las verduras (pimiento, zanahoria, cebolla, col).",
+   "Añade los noodles y la soja (más jengibre y ajo si te gusta) y saltea 2 min."
+  ]
+ },
+ "espada": {
+  "n": "Pez espada con cuscús y verduras",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "espada",
+    200
+   ],
+   [
+    "cuscus",
+    60
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "aceite",
+    10
+   ],
+   [
+    "gelatina",
+    200
+   ]
+  ],
+  "steps": [
+   "Cuscús: el mismo volumen de agua hirviendo con sal, tapa 5 min y suéltalo con un tenedor.",
+   "Verduras salteadas o al vapor.",
+   "Pez espada a la plancha muy caliente, 2 min por lado, con limón y ajo y perejil."
+  ]
+ },
+ "enslentejas": {
+  "n": "Ensalada de lentejas con huevo y pavo",
+  "t": "10 min",
+  "alt": true,
+  "items": [
+   [
+    "lentejas",
+    250
+   ],
+   [
+    "huevo",
+    60
+   ],
+   [
+    "pavof",
+    80
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "aceite",
+    10
+   ],
+   [
+    "naranja",
+    180
+   ]
+  ],
+  "steps": [
+   "Lentejas de bote lavadas y escurridas.",
+   "Mézclalas con tomate, cebolla, pepino, el huevo duro y el pavo en tacos.",
+   "Aliña con el aceite, vinagre, sal y comino."
+  ]
+ },
+ "fajitas": {
+  "n": "Fajitas de carne picada",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "tortillaw",
+    120
+   ],
+   [
+    "ternera",
+    160
+   ],
+   [
+    "verdura",
+    150
+   ],
+   [
+    "tomatefr",
+    50
+   ],
+   [
+    "mozza",
+    50
+   ],
+   [
+    "gelatina",
+    200
+   ]
+  ],
+  "steps": [
+   "Saltea pimiento y cebolla en tiras.",
+   "Añade la carne picada con comino, pimentón y ajo en polvo.",
+   "Añade el tomate y deja reducir 3 min.",
+   "Rellena las tortillas, pon la mozzarella y 1 min a la sartén para que funda."
+  ]
+ },
+ "enspasta": {
+  "n": "Ensalada de pasta con atún",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "pasta",
+    90
+   ],
+   [
+    "atun",
+    120
+   ],
+   [
+    "huevo",
+    60
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "aceite",
+    10
+   ],
+   [
+    "manzana",
+    180
+   ]
+  ],
+  "steps": [
+   "Cuece la pasta y enfríala con agua.",
+   "Mézclala con el atún, huevo duro, tomate cherry, maíz o pepino y cebolla.",
+   "Aliña con el aceite y vinagre. Aguanta 2 días en la nevera."
+  ]
+ },
+ "lubina": {
+  "n": "Lubina con patatas y pisto",
+  "t": "30 min",
+  "alt": true,
+  "items": [
+   [
+    "merluza",
+    250
+   ],
+   [
+    "patata",
+    300
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "tomatefr",
+    50
+   ],
+   [
+    "aceite",
+    10
+   ],
+   [
+    "gelatina",
+    200
+   ]
+  ],
+  "steps": [
+   "Patata en rodajas al microondas 6–8 min tapada, o cocida.",
+   "Pisto: calabacín, pimiento y cebolla pochados con el tomate.",
+   "Lubina a la plancha, primero por el lado de la piel, 3–4 min."
+  ]
+ },
+ "carbonara": {
+  "n": "Carbonara (versión que cuadra)",
+  "t": "15 min",
+  "alt": true,
+  "items": [
+   [
+    "pasta",
+    100
+   ],
+   [
+    "huevo",
+    120
+   ],
+   [
+    "jamon",
+    40
+   ],
+   [
+    "bacon",
+    10
+   ],
+   [
+    "queso",
+    10
+   ],
+   [
+    "verdura",
+    150
+   ],
+   [
+    "naranja",
+    180
+   ]
+  ],
+  "steps": [
+   "Cuece la pasta y guarda un vaso del agua de cocción.",
+   "Dora el bacon y el jamón en la sartén sin aceite.",
+   "Bate los huevos con el queso rallado y pimienta.",
+   "Con el fuego apagado, mezcla la pasta con el bacon, el huevo y un chorrito del agua. Remueve hasta que quede cremosa: no debe cuajar."
+  ]
+ },
+ "pizza": {
+  "n": "Pizza de tortilla",
+  "t": "12 min",
+  "alt": true,
+  "items": [
+   [
+    "tortillaw",
+    120
+   ],
+   [
+    "mozza",
+    60
+   ],
+   [
+    "pavof",
+    110
+   ],
+   [
+    "tomatefr",
+    60
+   ],
+   [
+    "verdura",
+    100
+   ],
+   [
+    "aceite",
+    5
+   ],
+   [
+    "gelatina",
+    200
+   ]
+  ],
+  "steps": [
+   "Base de tortilla de trigo con tomate, mozzarella, pavo, champiñón y pimiento.",
+   "Horno a 220 °C 8–10 min, hasta que quede crujiente.",
+   "Orégano por encima."
+  ]
+ },
+ "albondigas": {
+  "n": "Albóndigas en salsa con patatas al horno",
+  "t": "35 min",
+  "alt": true,
+  "items": [
+   [
+    "ternera",
+    180
+   ],
+   [
+    "patata",
+    250
+   ],
+   [
+    "tomatefr",
+    100
+   ],
+   [
+    "verdura",
+    100
+   ],
+   [
+    "aceite",
+    10
+   ]
+  ],
+  "steps": [
+   "Picada con ajo, perejil, sal y 1 huevo si quieres. Forma las albóndigas.",
+   "Dóralas en la sartén con la mitad del aceite y añade el tomate. 15 min tapadas.",
+   "Patatas en gajos con el resto del aceite y pimentón, 25 min a 200 °C. Igual que las fritas, pero cuadra."
+  ]
+ },
+ "sandwich": {
+  "n": "Sándwich de pollo, bacon y tomate",
+  "t": "10 min",
+  "alt": true,
+  "items": [
+   [
+    "pan",
+    100
+   ],
+   [
+    "pollo",
+    160
+   ],
+   [
+    "bacon",
+    20
+   ],
+   [
+    "tomate",
+    80
+   ],
+   [
+    "pepinillos",
+    30
+   ],
+   [
+    "verdura",
+    80
+   ]
+  ],
+  "steps": [
+   "Pollo en filetes finos a la plancha con sal y pimienta.",
+   "Bacon crujiente en la sartén sin aceite.",
+   "Pan tostado con lechuga, tomate, pepinillos, el pollo y el bacon. Mostaza si te gusta."
+  ]
+ },
+ "pulpo": {
+  "n": "Pulpo a la gallega rápido (cena de picoteo)",
+  "t": "10 min",
+  "alt": true,
+  "items": [
+   [
+    "pulpo",
+    220
+   ],
+   [
+    "patata",
+    150
+   ],
+   [
+    "verdura",
+    200
+   ],
+   [
+    "aceite",
+    10
+   ],
+   [
+    "edamame",
+    80
+   ],
+   [
+    "gelatina",
+    200
+   ]
+  ],
+  "steps": [
+   "Pulpo cocido (envasado) cortado en rodajas y templado 1 min en el microondas.",
+   "Base de patata cocida en rodajas, encima el pulpo, el aceite, pimentón y sal gorda.",
+   "De acompañamiento: ensalada y edamame con sal."
+  ]
+ }
 };
 
 </script>
@@ -1267,7 +2988,7 @@ function vGuia(){
   <li>Pulsa <b>Compartir</b> (el cuadrado con la flecha) y luego <b>"Añadir a pantalla de inicio"</b>.</li>
   <li>Te queda un icono como si fuera una app. Lo que marques se guarda en tu cuenta y lo ves igual en el ordenador.</li></ol>
   <p>Arriba a la derecha tiene que poner <b>☁️ sincronizado</b>. Si pone otra cosa, los datos solo están en ese dispositivo.</p></div>`}
-  <div class="small muted" style="margin:4px 2px">Versión de la app: 11 (21/11/2026)</div>
+  <div class="small muted" style="margin:4px 2px">Versión de la app: 12 (21/11/2026)</div>
   <h2>Gimnasio de la comunidad</h2><div class="card small"><ul>
   <li>Hay un cartel que pide no soltar pesas ni discos: bajada siempre controlada, también en las cargadas.</li>
   <li>La polea del rack aguanta como máximo 100 kg.</li>
@@ -1518,17 +3239,27 @@ function vFoodMenu(){
   h+=`<div class="card small"><b>Extras</b><ul><li>Agua: 2,5–3 L al día, más en días de entreno.</li><li>Verdura sin límite. Si tienes hambre, es lo primero que se sube.</li><li>Una comida libre a la semana (por ejemplo la del domingo) sin pasarte de 1.000–1.200 kcal en ella.</li><li>Alcohol: cuenta como calorías de hidratos y grasas. Una caña ≈ 90 kcal.</li></ul></div>`;
   return h;
 }
+function recipeItems(k){
+  const r=RECIPES[k]; if(r.items) return r.items;
+  for(const d of MENU) for(const m of d.meals) if(m.r===k) return m.items.filter(x=>x[1]>0 && !(x[0]==='gelatina'));
+  return [];
+}
+function recCard(k,r){
+  const uses=[]; MENU.forEach(d=>d.meals.forEach(m=>{ if(m.r===k) uses.push(d.day); }));
+  const items=recipeItems(k); const mt=items.length?macros(items):null;
+  const ing=items.map(([f,g])=>`${g} g ${esc(FOODS[f].n.replace(/ \(.*\)/,''))}`).join(' · ');
+  return `<div class="card" id="rec-${k}"><div class="row"><b>${esc(r.n)}</b><span class="spacer"></span><span class="chip">⏱ ${esc(r.t)}</span></div>
+    ${ing?`<div class="small" style="margin-top:6px"><span class="muted">Ingredientes (1 ración):</span> ${ing}</div>`:''}
+    ${mt?`<div class="small muted">${Math.round(mt.k)} kcal · P ${Math.round(mt.p)} · H ${Math.round(mt.c)} · G ${Math.round(mt.g)}</div>`:''}
+    <ol class="small" style="margin:8px 0 0 18px;padding:0">${r.steps.map(s=>`<li style="margin:3px 0">${esc(s)}</li>`).join('')}</ol>
+    <div class="row" style="margin-top:8px">${uses.length?`<span class="small muted">En el menú: ${[...new Set(uses)].join(', ')}</span>`:''}<span class="spacer"></span>
+      ${items.length?`<button class="btn sm" data-recadd="${k}">➕ Añadir a hoy</button>`:''}</div></div>`;
+}
 function vFoodRec(){
-  return Object.entries(RECIPES).map(([k,r])=>{
-    const uses=[]; MENU.forEach(d=>d.meals.forEach(m=>{ if(m.r===k) uses.push({d:d.day,m}); }));
-    const ing=uses[0]? uses[0].m.items.filter(x=>x[1]>0).map(([f,g])=>`${g} g ${esc(FOODS[f].n.replace(/ \(.*\)/,''))}`).join(' · ') : '';
-    const mt=uses[0]? macros(uses[0].m.items):null;
-    return `<div class="card" id="rec-${k}"><div class="row"><b>${esc(r.n)}</b><span class="spacer"></span><span class="chip">⏱ ${esc(r.t)}</span></div>
-      ${ing?`<div class="small" style="margin-top:6px"><span class="muted">Ingredientes (1 ración):</span> ${ing}</div>`:''}
-      ${mt?`<div class="small muted">${Math.round(mt.k)} kcal · P ${Math.round(mt.p)} · H ${Math.round(mt.c)} · G ${Math.round(mt.g)}</div>`:''}
-      <ol class="small" style="margin:8px 0 0 18px;padding:0">${r.steps.map(s=>`<li style="margin:3px 0">${esc(s)}</li>`).join('')}</ol>
-      ${uses.length?`<div class="small muted" style="margin-top:6px">En el menú: ${[...new Set(uses.map(u=>u.d))].join(', ')}</div>`:''}</div>`;
-  }).join('');
+  const main=Object.entries(RECIPES).filter(([k,r])=>!r.alt), alt=Object.entries(RECIPES).filter(([k,r])=>r.alt);
+  return `<div class="small muted" style="margin:6px 2px">Recetas de tus planes de TC Nutrition y de tu Excel, con las cantidades ajustadas a tus objetivos. Con <b>➕ Añadir a hoy</b> metes la ración en el registro del día, y luego puedes cambiar los gramos.</div>
+    <h2>En el menú de la semana</h2>${main.map(([k,r])=>recCard(k,r)).join('')}
+    <h2>Para variar (cámbialas por cualquier comida o cena)</h2>${alt.map(([k,r])=>recCard(k,r)).join('')}`;
 }
 function vFoodObj(){
   return `<div class="card small"><b>Tus objetivos</b>
@@ -1559,6 +3290,8 @@ function bindFood(v){
       it.f=ef.value; it.g=g; it.m=document.getElementById('em').value; editIdx=-1; saveFood(); flushNow(); render(); toast('Cambiado'); };
     document.getElementById('ecancel').onclick=()=>{ editIdx=-1; render(); };
   }
+  v.querySelectorAll('[data-recadd]').forEach(b=>b.onclick=()=>{ const k=b.dataset.recadd; const meal=defaultMeal();
+    const D=fday(today()); recipeItems(k).forEach(([f,g])=>D.items.push({f,g,m:meal})); saveFood(); toast(RECIPES[k].n+' añadido a hoy ('+meal+')'); });
   v.querySelectorAll('[data-rec]').forEach(b=>b.onclick=()=>{ foodSub='rec'; render(); const el=document.getElementById('rec-'+b.dataset.rec); if(el) el.scrollIntoView({block:'start'}); });
   v.querySelectorAll('[data-mday]').forEach(d=>d.addEventListener('toggle',()=>{ if(d.open) S.menuOpen=+d.dataset.mday; }));
   const fw=document.getElementById('fw'); if(fw){ fw.oninput=()=>{ fday(foodDate||today()).w=fw.value.replace(',','.'); saveFood(); };
