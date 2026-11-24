@@ -100,8 +100,21 @@ h2{font-size:17px;margin:18px 2px 8px}
 .status{font-size:11.5px}
 .empty{color:var(--mut);text-align:center;padding:30px 10px}
 svg text{fill:var(--mut);font-size:10px}
-.toast{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:var(--acc);color:#10200a;font-weight:700;padding:8px 14px;border-radius:10px;z-index:50;display:none}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-width:86vw;text-align:center;background:var(--acc);color:#10200a;font-weight:700;padding:12px 18px;border-radius:12px;z-index:100;display:none;pointer-events:none;box-shadow:0 8px 28px rgba(0,0,0,.55)}
 .toast.show{display:block}
+.ssgrp{border:1.5px solid var(--acc2);border-radius:var(--r);margin:10px 0;overflow:hidden;background:var(--card)}
+.ssgrp .ssh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 12px;background:#14261f;color:var(--acc2);font-size:12.5px;font-weight:650}
+.ssgrp .ssh .muted{font-weight:400}
+.ssgrp .sshs{padding:0 12px 7px;background:#14261f;color:var(--mut);font-size:12px}
+.ssgrp .ex{margin:0;border:0;border-radius:0;border-top:2px dashed var(--acc2)}
+.ssgrp .ex.done{background:#162016}
+.ssgrp .ex .ss{outline:2px solid #14261f}
+.modes{display:flex;gap:8px;flex-wrap:wrap}
+.clrw{position:relative;display:block;min-width:0}
+.clrw input,.clrw textarea{padding-right:34px}
+.clrb{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;border:0;background:var(--line);color:var(--txt);font-size:12px;line-height:1;display:none;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.clrw.ta .clrb{top:6px;transform:none}
+input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;display:none}
 </style>
 </head>
 <body>
@@ -474,9 +487,9 @@ const SESSIONS = [
     { title: 'Fuerza', min: 45, items: [
       { ex: 'bench', sets: 4, reps: '6', load: { pct: .76, ref: 'bench' }, rest: 150, tempo: '3-1-X-0', rir: 2, ph: [1, 2] },
       { ex: 'bench', sets: 5, reps: '5', load: { pct: .80, ref: 'bench' }, rest: 180, tempo: '3-1-X-0', rir: 2, ph: P3 },
-      { ex: 'wpullup', sets: 4, reps: '5', load: { txt: '+10 kg' }, rest: 150, tempo: '1-0-1-3', rir: 2, ph: ALL },
-      { ex: 'ohp', sets: 3, reps: '8', load: { pct: .65, ref: 'ohp' }, rest: 120, tempo: '2-0-X-0', rir: 2, ph: ALL, ss: 'C' },
-      { ex: 'cs_row', sets: 3, reps: '10', load: { kg: 20 }, rest: 90, tempo: '2-0-1-2', rir: 2, ph: ALL, ss: 'C' },
+      { ex: 'wpullup', sets: 4, reps: '5', load: { txt: '+10 kg' }, rest: 150, tempo: '1-3-1-0', rir: 2, ph: ALL },
+      { ex: 'ohp', sets: 3, reps: '8', load: { pct: .65, ref: 'ohp' }, rest: 120, tempo: 'X-0-2-0', rir: 2, ph: ALL, ss: 'C' },
+      { ex: 'cs_row', sets: 3, reps: '10', load: { kg: 20 }, rest: 90, tempo: '1-2-2-0', rir: 2, ph: ALL, ss: 'C' },
       { ex: 'facepull', sets: 3, reps: '15', load: { txt: 'ligero' }, rest: 60, ph: ALL, ss: 'D' },
       { ex: 'pallof', sets: 3, reps: '10/lado', load: { txt: 'moderado' }, rest: 60, ph: ALL, ss: 'D' },
     ]},
@@ -495,16 +508,16 @@ const SESSIONS = [
       { ex: 'cossack', dose: '2 × 5 por lado', ph: P23 },
     ]},
     { title: 'Fuerza', min: 45, items: [
-      { ex: 'hip_thrust', sets: 4, reps: '10', load: { kg: 60 }, rest: 120, tempo: '2-0-1-2', rir: 3, ph: P1, note: 'Sube 10 kg por semana si va sin dolor.' },
+      { ex: 'hip_thrust', sets: 4, reps: '10', load: { kg: 60 }, rest: 120, tempo: '1-2-2-0', rir: 3, ph: P1, note: 'Sube 10 kg por semana si va sin dolor.' },
       { ex: 'goblet', sets: 4, reps: '8', load: { kg: 20 }, rest: 120, tempo: '3-1-1-0', rir: 2, ph: P2, note: 'Si la goblet va limpia 2 sesiones, pasa a sentadilla frontal 4 × 5 al 60 %.' },
       { ex: 'front_squat', sets: 4, reps: '5', load: { pct: .60, ref: 'frontsquat' }, rest: 150, tempo: '3-0-X-0', rir: 3, ph: P2, opt: true },
-      { ex: 'hex_dl', sets: 3, reps: '5', load: { pct: .55, ref: 'deadlift' }, rest: 150, tempo: '2-0-X-0', rir: 3, ph: P2 },
+      { ex: 'hex_dl', sets: 3, reps: '5', load: { pct: .55, ref: 'deadlift' }, rest: 150, tempo: 'X-0-2-0', rir: 3, ph: P2 },
       { ex: 'back_squat', sets: 4, reps: '5', load: { pct: .75, ref: 'backsquat' }, rest: 180, tempo: '3-0-X-0', rir: 2, ph: P3 },
-      { ex: 'hex_dl', sets: 4, reps: '4', load: { pct: .72, ref: 'deadlift' }, rest: 180, tempo: '2-0-X-0', rir: 2, ph: P3 },
-      { ex: 'stepup', sets: 3, reps: '8/pierna', load: { kg: 12 }, rest: 90, tempo: '1-0-1-2', rir: 3, ph: P1, ss: 'B' },
+      { ex: 'hex_dl', sets: 4, reps: '4', load: { pct: .72, ref: 'deadlift' }, rest: 180, tempo: 'X-0-2-0', rir: 2, ph: P3 },
+      { ex: 'stepup', sets: 3, reps: '8/pierna', load: { kg: 12 }, rest: 90, tempo: '1-2-1-0', rir: 3, ph: P1, ss: 'B' },
       { ex: 'bss', sets: 3, reps: '8/pierna', load: { kg: 16 }, rest: 90, tempo: '3-0-1-0', rir: 2, ph: P23, ss: 'B' },
-      { ex: 'leg_curl', sets: 3, reps: '12', load: { txt: 'ajusta, RIR 2' }, rest: 75, tempo: '2-1-3-0', ph: ALL, ss: 'B' },
-      { ex: 'leg_ext', sets: 3, reps: '15', load: { txt: 'ajusta, RIR 2' }, rest: 60, tempo: '1-1-3-0', ph: ALL, ss: 'C' },
+      { ex: 'leg_curl', sets: 3, reps: '12', load: { txt: 'ajusta, RIR 2' }, rest: 75, tempo: '3-0-2-1', ph: ALL, ss: 'B' },
+      { ex: 'leg_ext', sets: 3, reps: '15', load: { txt: 'ajusta, RIR 2' }, rest: 60, tempo: '3-0-1-1', ph: ALL, ss: 'C' },
       { ex: 'side_lying_abd', sets: 3, reps: '15/lado', load: { txt: 'peso corporal' }, rest: 45, ph: P1, ss: 'C' },
       { ex: 'copenhagen', sets: 3, reps: '20 s/lado', load: { txt: 'peso corporal' }, rest: 45, ph: P23, ss: 'C' },
       { ex: 'suitcase', sets: 4, reps: '30 m/mano', load: { kg: 20 }, rest: 60, ph: ALL },
@@ -544,12 +557,12 @@ const SESSIONS = [
     ]},
     { title: 'Fuerza / hipertrofia', min: 48, items: [
       { ex: 'incline_bench', sets: 4, reps: '8', load: { pct: .60, ref: 'bench' }, rest: 120, tempo: '3-0-1-0', rir: 2, ph: ALL },
-      { ex: 'pulldown', sets: 4, reps: '10', load: { kg: 55 }, rest: 90, tempo: '2-0-1-1', rir: 2, ph: ALL },
+      { ex: 'pulldown', sets: 4, reps: '10', load: { kg: 55 }, rest: 90, tempo: '1-1-2-0', rir: 2, ph: ALL },
       { ex: 'landmine_press', sets: 3, reps: '10/brazo', load: { txt: 'barra + 10–15 kg' }, rest: 75, ph: ALL, ss: 'C' },
-      { ex: 'db_row', sets: 3, reps: '12/brazo', load: { kg: 20 }, rest: 75, tempo: '2-0-1-1', ph: ALL, ss: 'C' },
+      { ex: 'db_row', sets: 3, reps: '12/brazo', load: { kg: 20 }, rest: 75, tempo: '1-1-2-0', ph: ALL, ss: 'C' },
       { ex: 'dips', sets: 3, reps: 'máx − 2', load: { txt: 'peso corporal' }, rest: 75, ph: ALL, ss: 'D' },
-      { ex: 'ez_curl', sets: 3, reps: '10', load: { kg: 30 }, rest: 60, tempo: '1-0-1-3', ph: ALL, ss: 'D' },
-      { ex: 'lat_raise', sets: 3, reps: '15', load: { kg: 8 }, rest: 45, tempo: '1-0-1-3', ph: ALL, ss: 'E' },
+      { ex: 'ez_curl', sets: 3, reps: '10', load: { kg: 30 }, rest: 60, tempo: '1-3-1-0', ph: ALL, ss: 'D' },
+      { ex: 'lat_raise', sets: 3, reps: '15', load: { kg: 8 }, rest: 45, tempo: '1-3-1-0', ph: ALL, ss: 'E' },
       { ex: 'tri_push', sets: 3, reps: '12', load: { txt: 'RIR 2' }, rest: 45, ph: ALL, ss: 'E' },
     ]},
     { title: 'Cardio', min: 30, items: [
@@ -2517,7 +2530,7 @@ let idbTimer=null;
 function lsSet(v){ const j=JSON.stringify(v); try{localStorage.setItem(LS_KEY, j);}catch(e){} clearTimeout(idbTimer); idbTimer=setTimeout(()=>IDB.set(LS_KEY, j), 150); }
 function storedAt(o){ return o ? Math.max(0, ...((o.LOGS||[]).map(x=>x.ts||0)), +(o.savedAt||0)) : 0; }
 function setStatus(t){document.getElementById('status').textContent=t;}
-function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),1800);}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),2200);}
 
 // Guardado del estado (una escritura cada vez, con espera)
 let saveTimer=null, saving=false, saveAgain=false, lastStateJson='', lastFoodJson='';
@@ -2666,7 +2679,7 @@ function nextSession(){
 }
 function lastFor(exId){
   const sorted=[...LOGS].sort((a,b)=>(b.ts||0)-(a.ts||0));
-  for(const l of sorted){ const e=(l.entries||[]).find(e=>e.ex===exId && e.sets && e.sets.some(s=>s.kg||s.reps)); if(e) return {date:l.date, sets:e.sets}; }
+  for(const l of sorted){ const e=(l.entries||[]).find(e=>e.ex===exId && e.sets && e.sets.some(s=>s.kg||s.reps)); if(e) return {date:l.date, sets:e.sets, mode:e.mode}; }
   return null;
 }
 
@@ -2680,7 +2693,7 @@ function ensureDraft(sid){
     const ex=EX[it.ex], k=ex.type+':'+it.ex+':'+bi+':'+ii;
     if(it.sets){
       const sg=suggest(it); const kg=sg.kg;
-      d.items[k]={ ex:it.ex, sug:sg.kg, hint:sg.hint, sets:Array.from({length: isDeload()? Math.max(2,it.sets-1): it.sets},()=>({kg:kg, reps:'', done:false})) };
+      d.items[k]={ ex:it.ex, mode:(MODEX.has(it.ex)?((S.exMode&&S.exMode[it.ex])||'uni'):undefined), sug:sg.kg, hint:sg.hint, sets:Array.from({length: isDeload()? Math.max(2,it.sets-1): it.sets},()=>({kg:kg, reps:'', done:false})) };
     } else d.items[k]={ ex:it.ex, done:false, min: it.cardio||'' };
   }));
   S.draft=d; return d;
@@ -2688,6 +2701,8 @@ function ensureDraft(sid){
 // ====== PROGRESIÓN AUTOMÁTICA ======
 const LOWER=new Set(['hip_thrust','hex_dl','back_squat','front_squat']);
 const DBX=new Set(['cs_row','db_row','stepup','bss','lat_raise','goblet','farmer','suitcase']);
+// Ejercicios que se pueden hacer un lado cada vez o los dos a la vez (una mancuerna en cada mano)
+const MODEX=new Set(['stepup','db_row','suitcase','landmine_press']);
 function suggest(it){
   const base=loadKg(it.load);
   if(base==='' ) return {kg:'', hint:''};
@@ -2739,8 +2754,8 @@ function exDetail(ex, it){
 }
 function tempoTxt(t){
   const p=t.split('-'); if(p.length!==4) return '';
-  const w=x=>x==='X'?'explosivo':x+' s';
-  return `Bajada ${w(p[0])} · pausa abajo ${w(p[1])} · subida ${w(p[2])} · pausa arriba ${w(p[3])}`;
+  const w=x=>x==='X'?'explosivo (lo más rápido que puedas)':(x==='0'?'sin pausa':x+' s');
+  return `1 · Movimiento (la flexión o el inicio del ejercicio): <b>${w(p[0])}</b><br>2 · Pausa en el extremo (flexión o extensión máxima): <b>${w(p[1])}</b><br>3 · Recuperación (volver): <b>${w(p[2])}</b><br>4 · Pausa antes de la siguiente repetición: <b>${w(p[3])}</b>`;
 }
 
 function vHoy(){
@@ -2759,14 +2774,19 @@ function vHoy(){
     // bi/ii se refieren al bloque original para que las claves sean estables
     const ob=sess.blocks.findIndex(x=>x.title===b.title);
     h+=`<div class="blockh"><h3>${esc(b.title)}</h3><small>~${b.min} min</small></div>`;
-    b.items.forEach(it=>{
-      const ii=sess.blocks[ob].items.indexOf(it);
-      const ex=EX[it.ex]; const k=draftKey(it,ob,ii); const di=d.items[k]; if(!di) return;
+    const lst=[]; b.items.forEach(it=>{ const ii=sess.blocks[ob].items.indexOf(it); const k=draftKey(it,ob,ii); const di=d.items[k]; if(di) lst.push({it,ii,k,di}); });
+    lst.forEach((o,ix)=>{ const pv=lst[ix-1], nx=lst[ix+1], sl=o.it.ss; o.sameP=!!(sl&&pv&&pv.it.ss===sl); o.sameN=!!(sl&&nx&&nx.it.ss===sl); o.grp=o.sameP||o.sameN; });
+    lst.forEach((o,ix)=>{ if(o.grp&&!o.sameP){ let j=ix, r=0; const nm=[]; while(j<lst.length&&lst[j].it.ss===o.it.ss&&(j===ix||lst[j].sameP)){ r=Math.max(r,lst[j].it.rest||0); nm.push(EX[lst[j].it.ex].name); j++; } for(let q=ix;q<j;q++) lst[q].grest=r; o.gnames=nm; } });
+    lst.forEach(o=>{
+      const {it,ii,k,di}=o;
+      const ex=EX[it.ex];
+      const mode=MODEX.has(it.ex)?(di.mode||'uni'):'';
+      if(o.grp&&!o.sameP) h+=`<div class="ssgrp"><div class="ssh"><span>🔗 Superserie ${esc(it.ss)}</span><span class="muted">${esc(o.gnames.join(' + '))}</span><span class="spacer"></span>${o.grest?`<button class="btn sm ghost" data-timer="${o.grest}">⏱ ${fmtT(o.grest)} al acabar la ronda</button>`:''}</div><div class="sshs">Haz una serie de cada ejercicio seguidos y descansa solo al terminar la ronda.</div>`;
       const isDone = di.sets? di.sets.every(s=>s.done) : di.done;
       let rx='';
       if(it.sets){
         const L=(di.sug!==undefined&&di.sug!=='')? fmt(+di.sug)+' kg' : loadTxt(it.load);
-        rx=`<b>${di.sets.length} × ${esc(it.reps)}</b>${L?' · <b>'+esc(L)+'</b>':''}${it.rir!=null?' · RIR '+it.rir:''}${it.tempo?' · tempo '+esc(it.tempo):''}${it.rest?' · desc. '+fmtT(it.rest):''}`;
+        rx=`<b>${di.sets.length} × ${esc(it.reps)}</b>${L?' · <b>'+esc(L)+'</b>':''}${it.rir!=null?' · RIR '+it.rir:''}${it.tempo?' · tempo '+esc(it.tempo):''}${it.rest&&!o.grp?' · desc. '+fmtT(it.rest):''}`;
         if(it.load&&it.load.pct&&!di.hint) rx+=` <span class="small">(${Math.round(it.load.pct*100)} % de ${fmt(rm(it.load.ref))})</span>`;
         if(di.hint) rx+=`<div class="small" style="color:var(--warn);margin-top:2px">${esc(di.hint)}</div>`;
       } else rx=esc(it.dose||'');
@@ -2774,23 +2794,24 @@ function vHoy(){
       h+=`<div class="ex ${isDone?'done':''}" data-k="${k}">
         <div class="top" data-open="${k}">
           ${it.ss?`<span class="ss">${esc(it.ss)}</span>`:''}
-          <div style="flex:1"><div class="nm">${esc(ex.name)}${it.opt?' <span class="chip">opcional</span>':''}</div><div class="rx">${rx}</div>
-          ${last?`<div class="last">Última vez (${fdate(last.date)}): ${last.sets.filter(s=>s.kg||s.reps).map(s=>(s.kg?fmt(+s.kg)+'×':'')+(s.reps||'–')).join(' · ')}</div>`:''}</div>
+          <div style="flex:1"><div class="nm">${esc(ex.name)}${it.opt?' <span class="chip">opcional</span>':''}${(mode==='bi'||it.ex==='farmer')?' <span class="chip on">los dos a la vez</span>':''}</div><div class="rx">${rx}</div>
+          ${last?`<div class="last">Última vez (${fdate(last.date)}${last.mode==='bi'?', los dos a la vez':''}): ${last.sets.filter(s=>s.kg||s.reps).map(s=>(s.kg?fmt(+s.kg)+'×':'')+(s.reps||'–')).join(' · ')}</div>`:''}</div>
           ${it.sets?'':`<span class="ck ${di.done?'on':''}" data-ck="${k}">✓</span>`}
         </div>
         <div class="det">${exDetail(ex,it)}</div>`;
       if(it.sets){
-        h+=`<div class="sets">${di.sets.map((s,si)=>`<div class="set ${s.done?'ok':''}">
-            <span class="ck ${s.done?'on':''}" data-set="${k}|${si}" data-rest="${it.rest||0}">✓</span>
+        h+=`<div class="sets">${MODEX.has(it.ex)?`<div class="modes"><button class="chip ${mode==='uni'?'on':''}" data-mode="${k}|uni">Un lado cada vez</button><button class="chip ${mode==='bi'?'on':''}" data-mode="${k}|bi">Los dos a la vez</button></div>${mode==='bi'?'<div class="small muted">Una mancuerna en cada mano: los kg son de CADA mancuerna y las reps, por lado. Una sola tanda y un solo descanso.</div>':''}`:''}${it.ex==='farmer'?'<div class="small muted">Una mancuerna en cada mano, los dos lados a la vez. Los kg son de cada mancuerna.</div>':''}${di.sets.map((s,si)=>`<div class="set ${s.done?'ok':''}">
+            <span class="ck ${s.done?'on':''}" data-set="${k}|${si}" data-rest="${o.grp?(o.sameN?0:(o.grest||0)):(it.rest||0)}">✓</span>
             <label>Serie ${si+1}</label>
             <input inputmode="decimal" placeholder="kg" value="${esc(s.kg)}" data-in="${k}|${si}|kg">
             <input inputmode="numeric" placeholder="reps (${esc(it.reps)})" value="${esc(s.reps)}" data-in="${k}|${si}|reps">
           </div>`).join('')}
-          <div class="row"><button class="btn sm ghost" data-addset="${k}">+ serie</button>${it.rest?`<button class="btn sm ghost" data-timer="${it.rest}">⏱ ${fmtT(it.rest)}</button>`:''}</div></div>`;
+          <div class="row"><button class="btn sm ghost" data-addset="${k}">+ serie</button>${it.rest&&!o.grp?`<button class="btn sm ghost" data-timer="${it.rest}">⏱ ${fmtT(it.rest)}</button>`:''}</div></div>`;
       } else if(ex.type==='cardio'){
         h+=`<div class="cardio"><span class="small muted">Minutos hechos</span><input inputmode="numeric" value="${esc(di.min)}" data-cmin="${k}"></div>`;
       }
       h+=`</div>`;
+      if(o.grp&&!o.sameN) h+=`</div>`;
     });
   });
   h+=`<div class="card finish">
@@ -2960,8 +2981,10 @@ function vGuia(){
   return `<h2>Cómo leer cada ejercicio</h2><div class="card small"><ul>
   <li><b>4 × 6</b>: 4 series de 6 repeticiones.</li>
   <li><b>RIR 2</b> (repeticiones en reserva): termina la serie cuando creas que podrías hacer 2 más con buena técnica. No se va al fallo: así ganas fuerza sin acumular tanta fatiga, que es justo lo que interesa mientras defines.</li>
-  <li><b>Tempo 3-1-X-0</b>: segundos de bajada, pausa abajo, subida y pausa arriba. <b>X</b> = explosivo, lo más rápido que puedas manteniendo el control. En casi todo: <b>bajada lenta y subida rápida</b>.</li>
-  <li><b>Letras (B, C, D…)</b>: ejercicios con la misma letra van en <b>superserie</b>. Haces una serie de uno, otra del otro y luego descansas. Ahorra tiempo.</li>
+  <li><b>Tempo 3-1-X-0</b>: cuatro números, siempre en este orden: <b>1)</b> segundos del movimiento (la flexión o el inicio del ejercicio), <b>2)</b> pausa en el extremo (flexión o extensión máxima), <b>3)</b> segundos de la recuperación (volver), <b>4)</b> pausa antes de la siguiente repetición. <b>X</b> = explosivo, lo más rápido que puedas manteniendo el control; <b>0</b> = sin pausa. Ejemplo, banca 3-1-X-0: bajas la barra en 3 s, pausa 1 s abajo, subes explosivo y repites sin pausa.</li>
+  <li><b>Letras (B, C, D…)</b>: ejercicios con la misma letra van en <b>superserie</b> y aparecen unidos dentro de un recuadro verde. Haces una serie de uno, otra del otro y descansas <b>una sola vez al acabar la ronda</b> (el temporizador arranca al marcar la serie del último ejercicio). Ahorra tiempo.</li>
+  <li><b>Copiar una comida</b> (Comida → Registro del día → «Copiar una comida o receta»): copia una sola comida del menú semanal, de otro día que registraste o una receta.</li>
+  <li><b>Un lado cada vez / Los dos a la vez</b>: en step-up, remo con mancuerna, paseo de maleta y press landmine puedes elegir. Con «los dos a la vez» usas una mancuerna en cada mano, los kg son de cada mancuerna y la app recuerda tu elección.</li>
   <li><b>Desc. 2:30</b>: descanso entre series. Pulsa ✓ en la serie y el temporizador arranca solo. En sentadilla y peso muerto respeta el descanso completo.</li>
   <li><b>%</b>: porcentaje de tu 1RM (máximo a una repetición). Lo calcula la app a partir de tus marcas.</li>
   <li><b>RPE</b>: esfuerzo percibido del 1 al 10.</li></ul></div>
@@ -2988,7 +3011,7 @@ function vGuia(){
   <li>Pulsa <b>Compartir</b> (el cuadrado con la flecha) y luego <b>"Añadir a pantalla de inicio"</b>.</li>
   <li>Te queda un icono como si fuera una app. Lo que marques se guarda en tu cuenta y lo ves igual en el ordenador.</li></ol>
   <p>Arriba a la derecha tiene que poner <b>☁️ sincronizado</b>. Si pone otra cosa, los datos solo están en ese dispositivo.</p></div>`}
-  <div class="small muted" style="margin:4px 2px">Versión de la app: 12 (21/11/2026)</div>
+  <div class="small muted" style="margin:4px 2px">Versión de la app: 14 (24/11/2026)</div>
   <h2>Gimnasio de la comunidad</h2><div class="card small"><ul>
   <li>Hay un cartel que pide no soltar pesas ni discos: bajada siempre controlada, también en las cargadas.</li>
   <li>La polea del rack aguanta como máximo 100 kg.</li>
@@ -3086,6 +3109,7 @@ function vFoodReg(){
     <div class="lbl" style="margin-top:12px;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em">Añadir alimento</div>
     <div class="row" style="margin-top:6px;flex-wrap:nowrap"><input id="fq" class="sel" type="search" autocomplete="off" placeholder="Busca: pollo, yogur hacendado, Danone…" value="${esc(fs.q)}" style="flex:1">${STANDALONE?'<button class="btn" id="fscan" title="Escanear código de barras">📷</button>':''}</div>
     <div id="fres">${foodResults()}</div>
+    ${vFoodCopy()}
     ${menuDay?`<div class="row" style="margin-top:10px"><button class="btn sm" id="fcopy">📋 Copiar el menú del ${menuDay.day.toLowerCase()} (${menuDay.type==='train'?'entreno':'descanso'})</button></div>`:''}
   </div>
   <details class="card"><summary><b>+ Añadir un alimento que no está en la lista</b></summary>
@@ -3098,7 +3122,44 @@ function vFoodReg(){
   return h;
 }
 // ====== BÚSQUEDA DE ALIMENTOS (lista propia + Open Food Facts) ======
-let fs={ q:'', off:[], loading:false, err:'', sel:null, g:'', m:'' };
+let fs={ q:'', off:[], loading:false, err:'', sel:null, g:'', m:'', src:'' };
+let cps={src:'menu', a:'', b:''}, cpOpen=false;
+const MEALS5=['Desayuno','Comida','Merienda','Cena','Otro'];
+function cpOptions(){
+  const ds=foodDate||today(); const A=allFoods();
+  if(cps.src==='menu'){
+    const as=MENU.map(d=>[d.day,d.day]); const a=as.some(x=>x[0]===cps.a)?cps.a:as[0][0];
+    const md=MENU.find(d=>d.day===a); const meals=adaptDay(md, dayType(ds));
+    const bs=meals.map((m,i)=>[String(i),m.n]); const b=bs.some(x=>x[0]===cps.b)?cps.b:'0'; const m=meals[+b];
+    return {a,b,as,bs,items:m.items.filter(x=>x[1]>0).map(x=>[x[0],x[1]]),label:m.n};
+  }
+  if(cps.src==='dia'){
+    const days=Object.keys(F.days||{}).filter(k=>k!==ds && (F.days[k].items||[]).length).sort().reverse().slice(0,30);
+    const as=days.map(k=>[k,new Date(k+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long'})+' '+fdate(k)]);
+    if(!as.length) return {as,bs:[],items:[],label:''};
+    const a=as.some(x=>x[0]===cps.a)?cps.a:as[0][0];
+    const groups=[]; F.days[a].items.forEach(x=>{ const g=x.m||'Otro'; if(!groups.includes(g)) groups.push(g); });
+    const b=groups.includes(cps.b)?cps.b:groups[0];
+    return {a,b,as,bs:groups.map(g=>[g,g]),items:F.days[a].items.filter(x=>(x.m||'Otro')===b).map(x=>[x.f,x.g]),label:b};
+  }
+  const ks=Object.keys(RECIPES).filter(k=>recipeItems(k).length);
+  const a=ks.includes(cps.a)?cps.a:ks[0];
+  return {a,b:'',as:ks.map(k=>[k,RECIPES[k].n]),bs:[],items:recipeItems(a).map(x=>[x[0],x[1]]),label:defaultMeal()};
+}
+function vFoodCopy(){
+  const o=cpOptions(); const A=allFoods(); const sel=(id,arr,v)=>`<select class="sel" id="${id}" style="margin-top:6px">${arr.map(([k,t])=>`<option value="${esc(k)}" ${k===v?'selected':''}>${esc(t)}</option>`).join('')}</select>`;
+  const destOpts=[['', o.label?'Mantener «'+o.label+'»':'—']].concat(MEALS5.map(m=>[m,'Poner como '+m]));
+  let h=`<details class="card" id="cpbox" ${cpOpen?'open':''} style="margin:10px 0 0"><summary><b>📋 Copiar una comida o receta</b></summary>
+    <div class="small muted" style="margin:6px 0">Copia solo una comida (no todo el día) al día que tienes abierto arriba.</div>
+    <div class="row">${[['menu','Del menú semanal'],['dia','De un día registrado'],['rec','Receta']].map(([k,t])=>`<button class="chip ${cps.src===k?'on':''}" data-cpsrc="${k}">${t}</button>`).join('')}</div>`;
+  if(!o.as.length) return h+`<div class="small muted" style="margin-top:8px">Todavía no hay otros días con comidas registradas.</div></details>`;
+  h+=sel('cpa',o.as,o.a)+(o.bs.length?sel('cpb',o.bs,o.b):'');
+  const t=o.items.length?macros(o.items):null;
+  h+=`<div class="small" style="margin-top:8px">${o.items.map(([f,g])=>`${g} g ${esc(((A[f]||{}).n||f).replace(/ \(.*\)/,''))}`).join(' · ')||'Nada que copiar'}</div>
+    ${t?`<div class="small muted">${Math.round(t.k)} kcal · P ${Math.round(t.p)} · H ${Math.round(t.c)} · G ${Math.round(t.g)}</div>`:''}
+    <div class="row" style="margin-top:8px"><select class="sel" id="cpm" style="width:auto;flex:1">${destOpts.map(([k,t2])=>`<option value="${esc(k)}">${esc(t2)}</option>`).join('')}</select><button class="btn pri" id="cpgo">Copiar</button></div></details>`;
+  return h;
+}
 const norm=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 function recentFoods(){ const seen=[]; Object.keys(F.days||{}).sort().reverse().forEach(ds=>((F.days[ds].items)||[]).slice().reverse().forEach(x=>{ if(!seen.includes(x.f)) seen.push(x.f); })); return seen.slice(0,10); }
 function localMatches(q){
@@ -3128,10 +3189,10 @@ function foodResults(){
   }
   const loc=localMatches(fs.q);
   if(loc.length) h+=`<div class="small muted" style="margin-top:8px">Tu lista</div>`+loc.map(k=>foodRow(k,A[k],A[k].b||k.startsWith('off_')?'producto':'')).join('');
-  h+=`<div class="small muted" style="margin-top:10px">Productos (Open Food Facts)</div>`;
+  h+=`<div class="small muted" style="margin-top:10px">Productos (Open Food Facts y respaldo USDA)</div>`;
   if(fs.loading) h+=`<div class="small muted" style="padding:8px">Buscando…</div>`;
-  else if(fs.err) h+=`<div class="small" style="color:var(--warn);padding:8px">${esc(fs.err)}</div>`;
-  else if(fs.off.length) h+=fs.off.map(p=>foodRow('off_'+p.code, p, 'OFF')).join('');
+  else if(fs.err) h+=`<div class="small" style="color:var(--warn);padding:8px">${esc(fs.err)} <button class="btn sm" data-fretry="1">Reintentar</button></div>`;
+  else if(fs.off.length) h+=(fs.src?`<div class="small muted" style="padding:0 2px">Fuente: ${esc(fs.src)}</div>`:'')+fs.off.map(p=>foodRow('off_'+p.code, p, p.src||'OFF')).join('');
   else if(fs.q.trim().length>=3) h+=`<div class="small muted" style="padding:8px">Sin resultados. Prueba con otras palabras o añádelo a mano abajo.</div>`;
   return h;
 }
@@ -3145,36 +3206,50 @@ function offParse(p){
   return { code:String(p.code||p._id||''), n:name.trim(), b:String(Array.isArray(p.brands)?p.brands.join(', '):(p.brands||'')).split(',')[0].trim(), k, p:num(n.proteins_100g), c:num(n.carbohydrates_100g), g:num(n.fat_100g), sv: sv>0&&sv<1000?Math.round(sv):0 };
 }
 let offTimer=null, offSeq=0;
+const foodCache={};
+const OFF_FIELDS='code,product_name,product_name_es,generic_name,generic_name_es,brands,nutriments,serving_quantity';
+// Petición con tiempo máximo: si la red va mal, no se queda colgada
+async function fj(url,ms){ const c=new AbortController(); const t=setTimeout(()=>c.abort(),ms||7000);
+  try{ const r=await fetch(url,{signal:c.signal}); if(!r.ok) throw new Error('HTTP '+r.status); return await r.json(); } finally{ clearTimeout(t); } }
+const offTag=list=>list.map(offParse).filter(Boolean).map(p=>(p.src='OFF',p));
+function usdaParse(f){
+  const n={}; (f.foodNutrients||[]).forEach(x=>{ n[String(x.nutrientNumber||x.nutrientId)]=x.value; });
+  const k=+(n['208']||n['1008']||0), r1=v=>Math.round((+v||0)*10)/10;
+  const name=String(f.description||'').trim(); if(!name||!k) return null;
+  return { code:'usda'+f.fdcId, n:name.charAt(0)+name.slice(1).toLowerCase(), b:'USDA (en inglés)', k:Math.round(k), p:r1(n['203']||n['1003']), c:r1(n['205']||n['1005']), g:r1(n['204']||n['1004']), sv:0, src:'USDA' };
+}
+// Fuentes, por orden. Las de cada "tanda" se lanzan a la vez y gana la primera que traiga resultados.
+const SRC_SAL={ name:'Open Food Facts', run:async q=>{ const j=await fj('https://search.openfoodfacts.org/search?q='+encodeURIComponent(q)+'&langs=es&page_size=25&fields='+OFF_FIELDS,7000); return offTag(j.hits||j.products||[]); } };
+const SRC_WORLD={ name:'Open Food Facts', run:async q=>{ const j=await fj('https://world.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=25&fields='+OFF_FIELDS,9000); return offTag(j.products||[]); } };
+const SRC_ES={ name:'Open Food Facts (España)', run:async q=>{ const j=await fj('https://es.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=25&fields='+OFF_FIELDS,9000); return offTag(j.products||[]); } };
+const SRC_USDA={ name:'USDA FoodData Central', run:async q=>{ const j=await fj('https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&pageSize=15&dataType=Foundation,SR%20Legacy&query='+encodeURIComponent(q),9000); return (j.foods||[]).map(usdaParse).filter(Boolean); } };
+const SRC_WAVES=[[SRC_SAL,SRC_WORLD],[SRC_ES],[SRC_USDA]];
+function runWave(q,wv,stat){
+  return new Promise(res=>{ let left=wv.length; const fin=()=>{ if(--left===0) res(null); };
+    wv.forEach(sr=>{ sr.run(q).then(list=>{ stat.ok++; if(list&&list.length) res({sr,list}); fin(); }).catch(()=>{ stat.fail++; fin(); }); }); });
+}
 async function offSearch(q){
-  const seq=++offSeq; fs.loading=true; fs.err=''; refreshFoodRes();
-  const fields='code,product_name,product_name_es,generic_name,generic_name_es,brands,nutriments,serving_quantity';
-  let list=null;
-  try{
-    const r=await fetch('https://search.openfoodfacts.org/search?q='+encodeURIComponent(q)+'&langs=es&page_size=25&fields='+fields);
-    if(r.ok){ const j=await r.json(); list=(j.hits||j.products||[]); }
-  }catch(e){}
-  if(!list){
-    try{
-      const r=await fetch('https://es.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=25&fields='+fields);
-      if(r.ok){ const j=await r.json(); list=j.products||[]; }
-    }catch(e){}
-  }
-  if(seq!==offSeq) return;
+  const seq=++offSeq; fs.loading=true; fs.err=''; fs.src=''; refreshFoodRes();
+  const ck=norm(q);
+  if(foodCache[ck]){ fs.loading=false; fs.off=foodCache[ck].list; fs.src=foodCache[ck].src; refreshFoodRes(); return; }
+  if(typeof navigator!=='undefined' && navigator.onLine===false){ fs.loading=false; fs.off=[]; fs.err='Sin internet ahora mismo. Puedes seguir usando tu lista de alimentos.'; refreshFoodRes(); return; }
+  const stat={ok:0,fail:0}; let got=null;
+  for(const wv of SRC_WAVES){ got=await runWave(q,wv,stat); if(seq!==offSeq) return; if(got) break; }
   fs.loading=false;
-  if(!list){ fs.err='No se pudo conectar con Open Food Facts. ¿Tienes internet?'; fs.off=[]; }
-  else { const seen=new Set(); fs.off=list.map(offParse).filter(p=>p && p.code && !seen.has(p.code) && seen.add(p.code)).slice(0,15); }
+  if(got){ const seen=new Set(); fs.off=got.list.filter(p=>p.code && !seen.has(p.code) && seen.add(p.code)).slice(0,15); fs.src=got.sr.name; foodCache[ck]={list:fs.off, src:fs.src}; }
+  else { fs.off=[]; if(stat.ok===0) fs.err='No se pudo conectar con ninguna base de datos (Open Food Facts ni USDA). Pulsa Reintentar.'; }
   refreshFoodRes();
 }
 async function offBarcode(code){
   code=String(code).replace(/\D/g,''); if(!code) return;
   toast('Buscando el producto…');
-  try{
-    const r=await fetch('https://world.openfoodfacts.org/api/v2/product/'+code+'.json?fields=code,product_name,product_name_es,generic_name,generic_name_es,brands,nutriments,serving_quantity');
-    const j=await r.json();
-    const p=j && j.product && offParse(Object.assign({code}, j.product));
-    if(!p){ toast('Producto no encontrado o sin datos nutricionales'); fs.q=code; fs.off=[]; refreshFoodRes(true); return; }
-    pickFood('off_'+p.code, p);
-  }catch(e){ toast('No se pudo conectar con Open Food Facts'); }
+  const urls=['https://world.openfoodfacts.org/api/v2/product/'+code+'.json?fields='+OFF_FIELDS,'https://es.openfoodfacts.org/api/v2/product/'+code+'.json?fields='+OFF_FIELDS,'https://world.openfoodfacts.org/api/v0/product/'+code+'.json'];
+  let reached=false;
+  for(const u of urls){
+    try{ const j=await fj(u,8000); reached=true; const p=j && j.product && offParse(Object.assign({code}, j.product)); if(p){ p.src='OFF'; pickFood('off_'+p.code, p); return; } }catch(e){}
+  }
+  if(reached){ toast('Producto no encontrado o sin datos nutricionales'); fs.q=code; fs.off=[]; refreshFoodRes(true); }
+  else toast('No se pudo conectar con Open Food Facts');
 }
 function pickFood(id, f){
   F.custom=F.custom||{};
@@ -3200,6 +3275,7 @@ function bindFoodRes(){
     fs={ q:'', off:[], loading:false, err:'', sel:null, g:'', m:'' }; saveFood(); render(); toast('Añadido');
   };
   const c=document.getElementById('fcancel'); if(c) c.onclick=()=>{ fs.sel=null; refreshFoodRes(); };
+  el.querySelectorAll('[data-fretry]').forEach(b=>b.onclick=()=>{ if(fs.q.trim().length>=2) offSearch(fs.q.trim()); });
 }
 // Escáner de código de barras con la cámara (librería ZXing, se carga solo al usarlo)
 let zxLoading=null;
@@ -3305,6 +3381,13 @@ function bindFood(v){
     bindFoodRes();
   }
   const fsc=document.getElementById('fscan'); if(fsc) fsc.onclick=()=>openScanner();
+  const cpb=document.getElementById('cpbox'); if(cpb) cpb.addEventListener('toggle',()=>{ cpOpen=cpb.open; });
+  v.querySelectorAll('[data-cpsrc]').forEach(b=>b.onclick=()=>{ cps={src:b.dataset.cpsrc,a:'',b:''}; cpOpen=true; render(); });
+  const cpa=document.getElementById('cpa'); if(cpa) cpa.onchange=()=>{ cps.a=cpa.value; cps.b=''; cpOpen=true; render(); };
+  const cpbs=document.getElementById('cpb'); if(cpbs) cpbs.onchange=()=>{ cps.b=cpbs.value; cpOpen=true; render(); };
+  const cpgo=document.getElementById('cpgo'); if(cpgo) cpgo.onclick=()=>{ const o=cpOptions(); if(!o.items.length){ toast('No hay nada que copiar'); return; }
+    const dest=(document.getElementById('cpm')||{}).value||o.label||defaultMeal(); const D=fday(foodDate||today());
+    o.items.forEach(([f,g])=>D.items.push({f,g,m:dest})); saveFood(); cpOpen=true; render(); toast('Copiado a '+dest); };
   const fadd=null; if(fadd) fadd.onclick=()=>{
     const g=parseFloat((document.getElementById('fg').value||'').replace(',','.')); if(!(g>0)){ toast('Pon los gramos'); return; }
     fday(foodDate||today()).items.push({f:document.getElementById('ff').value, g, m:document.getElementById('fm').value}); saveFood(); render(); toast('Añadido');
@@ -3363,7 +3446,7 @@ function vCoach(){
 function coachContext(){
   const sess=SESSIONS.map(s=>{
     const items=s.blocks.flatMap(b=>b.items.filter(it=>it.ph.includes(S.phase)).map(it=>{
-      const n=EX[it.ex].name; if(it.sets) return `${n} ${it.sets}x${it.reps}${loadTxt(it.load)?' @ '+loadTxt(it.load):''}${it.tempo?' tempo '+it.tempo:''}`; return `${n}: ${it.dose||''}`; }));
+      const n=EX[it.ex].name; if(it.sets) return `${n} ${it.sets}x${it.reps}${loadTxt(it.load)?' @ '+loadTxt(it.load):''}${it.tempo?' tempo '+it.tempo+' (movimiento-pausa en el extremo-recuperación-pausa antes de repetir)':''}`; return `${n}: ${it.dose||''}`; }));
     return `${s.id} ${s.title}: ${items.join('; ')}`;}).join('\n');
   const logs=[...LOGS].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,15).map(l=>{
     const ent=(l.entries||[]).map(e=>`${EX[e.ex]?EX[e.ex].name:e.ex} ${e.sets.filter(s=>s.kg||s.reps).map(s=>(s.kg?s.kg+'x':'')+(s.reps||'?')).join(',')}`).join('; ');
@@ -3562,6 +3645,7 @@ function bind(){
   v.querySelectorAll('[data-cmin]').forEach(el=>el.oninput=()=>{ S.draft.items[el.dataset.cmin].min=el.value; saveState(); });
   v.querySelectorAll('[data-addset]').forEach(el=>el.onclick=()=>{ const it=S.draft.items[el.dataset.addset]; const l=it.sets[it.sets.length-1]; it.sets.push({kg:l?l.kg:'',reps:'',done:false}); saveState(); render(); });
   v.querySelectorAll('[data-timer]').forEach(el=>el.onclick=()=>startTimer(+el.dataset.timer));
+  v.querySelectorAll('[data-mode]').forEach(el=>el.onclick=()=>{ const [k,m]=el.dataset.mode.split('|'); const x=S.draft.items[k]; if(!x) return; x.mode=m; S.exMode=S.exMode||{}; S.exMode[x.ex]=m; saveState(); render(); });
   const pain=document.getElementById('pain'); if(pain){
     pain.oninput=()=>{S.draft.pain=+pain.value;document.getElementById('painV').textContent=pain.value;saveState();};
     const rpe=document.getElementById('rpe'); rpe.oninput=()=>{S.draft.rpe=+rpe.value;document.getElementById('rpeV').textContent=rpe.value;saveState();};
@@ -3593,7 +3677,7 @@ async function finish(){
   if(!draftHasData() && !confirm('No has marcado nada. ¿Guardar igualmente?')) return;
   const entries=[], cardio=[];
   Object.entries(d.items).forEach(([k,x])=>{
-    if(x.sets){ const sets=x.sets.filter(s=>s.done||s.reps).map(s=>({kg:s.kg===''?'':+s.kg, reps:s.reps})); if(sets.length) entries.push({ex:x.ex, sets}); }
+    if(x.sets){ const sets=x.sets.filter(s=>s.done||s.reps).map(s=>({kg:s.kg===''?'':+s.kg, reps:s.reps})); if(sets.length) entries.push(x.mode?{ex:x.ex, sets, mode:x.mode}:{ex:x.ex, sets}); }
     else if(EX[x.ex].type==='cardio' && (x.done||x.min)) cardio.push({ex:x.ex, min:x.min, done:x.done});
   });
   const ts=Date.now();
@@ -3699,6 +3783,26 @@ document.getElementById('tStop').onclick=()=>{ clearInterval(tInt); document.get
 
 if(!STANDALONE){ const ct=document.querySelector('.coachtab'); if(ct) ct.remove(); }
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{ tab=b.dataset.t; render(); window.scrollTo(0,0); });
+// Botón ✕ dentro de los cuadros de texto para borrar todo de golpe
+function addClearBtns(){
+  document.querySelectorAll('#view textarea, #view input').forEach(el=>{
+    if(el.dataset.clr) return;
+    const t=(el.getAttribute('type')||'text').toLowerCase(), im=el.getAttribute('inputmode')||'';
+    if(!['text','search','password','textarea'].includes(el.tagName==='TEXTAREA'?'textarea':t)) return;
+    if(im==='decimal'||im==='numeric') return;
+    el.dataset.clr='1';
+    const w=document.createElement('span'); w.className='clrw'+(el.tagName==='TEXTAREA'?' ta':'');
+    if(el.style.flex) w.style.flex=el.style.flex; if(el.style.gridColumn) w.style.gridColumn=el.style.gridColumn;
+    el.parentNode.insertBefore(w,el); w.appendChild(el);
+    const b=document.createElement('button'); b.type='button'; b.className='clrb'; b.textContent='✕'; b.setAttribute('aria-label','Borrar todo el texto');
+    w.appendChild(b);
+    const upd=()=>{ b.style.display=el.value?'flex':'none'; };
+    el.addEventListener('input',upd); upd();
+    b.addEventListener('mousedown',e=>e.preventDefault());
+    b.addEventListener('click',()=>{ el.value=''; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); upd(); try{el.focus();}catch(e){} });
+  });
+}
+try{ let clrT=null; new MutationObserver(()=>{ clearTimeout(clrT); clrT=setTimeout(addClearBtns,0); }).observe(document.getElementById('view'),{childList:true,subtree:true}); addClearBtns(); }catch(e){}
 function flushNow(){ if(saveTimer){ clearTimeout(saveTimer); flushState(); } if(fTimer){ clearTimeout(fTimer); flushFood(); } }
 window.addEventListener('beforeunload', flushNow);
 window.addEventListener('pagehide', flushNow);
