@@ -137,12 +137,13 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;display
   <button data-t="hist"><span class="i">📈</span>Historial</button>
   <button data-t="prs"><span class="i">🏆</span>Marcas</button>
   <button data-t="guia"><span class="i">📘</span>Guía</button>
-  <button data-t="coach" class="coachtab"><span class="i">🤖</span>Coach</button>
+  <button data-t="ajustes"><span class="i">⚙️</span>Ajustes</button>
 </nav>
 <script>
 const STANDALONE = true;
 // ====== DATOS DEL PROGRAMA ======
 const START_DATE = '2026-11-21';
+const APP_VER=17, APP_DATE='26/11/2026';
 
 // Base de cálculo (1RM estimado) a partir de tus marcas de AimHarder
 const BASE_PRS = {
@@ -2574,9 +2575,10 @@ async function init(){
   let l = lsGet();
   if(STANDALONE){ // recupera de la copia espejo si localStorage se perdió o está más atrasado
     try{ const j=await IDB.get(LS_KEY); const o=j?JSON.parse(j):null; if(o && (!l || (o.savedAt||0)>(l.savedAt||0))){ l=o; try{ localStorage.setItem(LS_KEY, j); }catch(e){} } }catch(e){}
-    for(const k of ['gym-gemini-key','gym-camacho-lastbackup','gym-chat']){ try{ if(!localStorage.getItem(k)){ const v=await IDB.get(k); if(v) localStorage.setItem(k, v); } }catch(e){} }
-    if(typeof GCHAT!=='undefined'){ try{ chat=JSON.parse(localStorage.getItem(GCHAT)||'[]'); }catch(e){} }
-    try{ const k=localStorage.getItem('gym-gemini-key'); if(k) IDB.set('gym-gemini-key', k); }catch(e){}
+    for(const k of ['gym-camacho-lastbackup']){ try{ if(!localStorage.getItem(k)){ const v=await IDB.get(k); if(v) localStorage.setItem(k, v); } }catch(e){} }
+    // El Coach ya no existe: borra del móvil la clave y el chat que guardó
+    for(const k of ['gym-gemini-key','gym-chat','gym-gemini-model','gym-gemini-models','gym-gemini-search']){ try{ localStorage.removeItem(k); }catch(e){} }
+    try{ IDB.set('gym-gemini-key', null); IDB.set('gym-chat', null); }catch(e){}
   }
   if(l){ S = Object.assign(S, l.S||{}); LOGS = l.LOGS||[]; if(l.F) F = Object.assign(F, l.F); }
   render();
@@ -2663,6 +2665,8 @@ function e1rm(kg,reps){ kg=+kg; reps=parseInt(reps); if(!kg||!reps) return 0; re
 function fmt(n){ return (Math.round(n*10)/10).toString().replace('.',','); }
 function weekNo(){ const d0=new Date(START_DATE+'T00:00:00'); const d=new Date(); return Math.max(1, Math.floor((d-d0)/(7*864e5))+1); }
 function isDeload(){ return weekNo()%5===0; }
+function progWeekStart(ds){ const d0=new Date(START_DATE+'T12:00:00'), d=new Date(ds+'T12:00:00'); const w=Math.max(0,Math.floor(Math.round((d-d0)/864e5)/7)); return addDays(START_DATE,7*w); }
+function weekSessions(ds){ const a=progWeekStart(ds), b=addDays(a,6); return LOGS.filter(l=>l.date>=a&&l.date<=b).length; }
 function today(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function fdate(s){ const [y,m,d]=s.split('-'); return d+'/'+m+'/'+y; }
 
@@ -2713,7 +2717,7 @@ function suggest(it){
   const lastKg=Math.max(...sets.map(s=>+s.kg));
   const top=sets.filter(s=>+s.kg===lastKg);
   const allHit = sets.length>=Math.max(2,it.sets-1) && top.every(s=>parseInt(s.reps)>=target);
-  const isDb=DBX.has(it.ex), inc=isDb?2:(LOWER.has(it.ex)?5:2.5), cap=isDb?20:Infinity;
+  const isDb=DBX.has(it.ex), inc=isDb?2:(LOWER.has(it.ex)?5:2.5), cap=isDb?cfg().dbMax:Infinity;
   if(isDeload()) { const k=isDb?lastKg:r25(lastKg*0.9); return {kg:k, hint:'Semana de descarga: '+fmt(k)+' kg, sin apretar.'}; }
   if(allHit){
     if(lastKg+inc>cap) return {kg:lastKg, hint:'Completaste todo, pero no hay mancuernas más pesadas: haz 1–2 repeticiones más por serie.'};
@@ -2726,15 +2730,15 @@ function draftKey(it,bi,ii){ return EX[it.ex].type+':'+it.ex+':'+bi+':'+ii; }
 
 // ====== RENDER ======
 function render(){
-  document.getElementById('ttl').textContent=({hoy:'🏋️ Entreno de hoy',prog:'🗓️ Programa',food:'🥗 Comida',hist:'📈 Historial',prs:'🏆 Marcas',guia:'📘 Guía',coach:'🤖 Coach'})[tab]||'';
+  document.getElementById('ttl').textContent=({hoy:'🏋️ Entreno de hoy',prog:'🗓️ Programa',food:'🥗 Comida',hist:'📈 Historial',prs:'🏆 Marcas',guia:'📘 Guía',ajustes:'⚙️ Ajustes'})[tab]||'';
   document.getElementById('phChip').textContent=PHASES[S.phase].name;
   document.getElementById('wkChip').textContent='Semana '+weekNo()+' de 12'+(isDeload()?' · descarga':weekNo()===12?' · test de marcas':'');
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.t===tab));
   const v=document.getElementById('view');
   const y=window.scrollY;
-  v.innerHTML = tab==='hoy'?vHoy(): tab==='prog'?vProg(): tab==='hist'?vHist(): tab==='prs'?vPrs(): tab==='food'?vFood(): tab==='coach'?vCoach(): vGuia();
+  v.innerHTML = tab==='hoy'?vHoy(): tab==='prog'?vProg(): tab==='hist'?vHist(): tab==='prs'?vPrs(): tab==='food'?vFood(): tab==='ajustes'?vAjustes(): vGuia();
   if(backend==='local' && !STANDALONE) v.insertAdjacentHTML('afterbegin', localBanner());
-  if(STANDALONE && tab==='hoy' && backupDue()) v.insertAdjacentHTML('afterbegin', '<div class="note" style="margin-bottom:10px">💾 Hace más de 7 días que no haces copia de seguridad. Ve a <b>Marcas → Copia de seguridad</b>.</div>');
+  if(STANDALONE && tab==='hoy' && backupDue()) v.insertAdjacentHTML('afterbegin', '<div class="note" style="margin-bottom:10px">💾 Hace más de '+cfg().bkDays+' días que no haces copia de seguridad. Ve a <b>Ajustes → Copia de seguridad</b>.</div>');
   if(backend==='db' && document.getElementById('status').textContent.startsWith('⚠️')) v.insertAdjacentHTML('afterbegin', '<div class="alt" style="margin-bottom:10px">⚠️ Problema de conexión con la nube. No cierres la app hasta que arriba ponga ☁️.</div>');
   bind();
   window.scrollTo(0,y);
@@ -2763,7 +2767,10 @@ function vHoy(){
   const nxt = nextSession();
   const sess=SESSIONS.find(s=>s.id===sid);
   const d=ensureDraft(sid);
-  let h=`<div class="sessions">${SESSIONS.map(s=>`<button data-sess="${s.id}" class="${s.id===sid?'on':''} ${s.id===nxt?'next':''}"><b>${s.id} · ${esc(s.title)}</b><span>${esc(s.sub)}</span></button>`).join('')}</div>`;
+  const wdone=weekSessions(today()), wnext=addDays(progWeekStart(today()),7);
+  const wtxt=new Date(wnext+'T12:00:00').toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'numeric'});
+  let h=wdone>=5?`<div class="note" style="margin-bottom:10px">✅ Ya has hecho tus 5 sesiones de la semana ${weekNo()}. Hoy toca descansar (paseo o bici suave si te apetece). La semana ${weekNo()+1} empieza el ${wtxt} y te tocará ${nxt}. Si aun así quieres entrenar, elige una sesión aquí abajo.</div>`:`<div class="small muted" style="margin:0 2px 8px">Esta semana del plan: <b>${wdone} de 5</b> sesiones hechas.</div>`;
+  h+=`<div class="sessions">${SESSIONS.map(s=>`<button data-sess="${s.id}" class="${s.id===sid?'on':''} ${s.id===nxt?'next':''}"><b>${s.id} · ${esc(s.title)}</b><span>${esc(s.sub)}</span></button>`).join('')}</div>`;
   const total=Object.values(d.items).reduce((a,x)=>a+(x.sets?x.sets.length:1),0);
   const done=Object.values(d.items).reduce((a,x)=>a+(x.sets?x.sets.filter(s=>s.done).length:(x.done?1:0)),0);
   h+=`<div class="card"><div class="row"><b>${sess.id} · ${esc(sess.title)}</b><span class="spacer"></span><span class="muted small">${done}/${total} completado</span></div>
@@ -2781,6 +2788,7 @@ function vHoy(){
       const {it,ii,k,di}=o;
       const ex=EX[it.ex];
       const mode=MODEX.has(it.ex)?(di.mode||'uni'):'';
+      const bw=!!(it.load&&it.load.txt==='peso corporal');
       if(o.grp&&!o.sameP) h+=`<div class="ssgrp"><div class="ssh"><span>🔗 Superserie ${esc(it.ss)}</span><span class="muted">${esc(o.gnames.join(' + '))}</span><span class="spacer"></span>${o.grest?`<button class="btn sm ghost" data-timer="${o.grest}">⏱ ${fmtT(o.grest)} al acabar la ronda</button>`:''}</div><div class="sshs">Haz una serie de cada ejercicio seguidos y descansa solo al terminar la ronda.</div>`;
       const isDone = di.sets? di.sets.every(s=>s.done) : di.done;
       let rx='';
@@ -2800,13 +2808,13 @@ function vHoy(){
         </div>
         <div class="det">${exDetail(ex,it)}</div>`;
       if(it.sets){
-        h+=`<div class="sets">${MODEX.has(it.ex)?`<div class="modes"><button class="chip ${mode==='uni'?'on':''}" data-mode="${k}|uni">Un lado cada vez</button><button class="chip ${mode==='bi'?'on':''}" data-mode="${k}|bi">Los dos a la vez</button></div>${mode==='bi'?'<div class="small muted">Una mancuerna en cada mano: los kg son de CADA mancuerna y las reps, por lado. Una sola tanda y un solo descanso.</div>':''}`:''}${it.ex==='farmer'?'<div class="small muted">Una mancuerna en cada mano, los dos lados a la vez. Los kg son de cada mancuerna.</div>':''}${di.sets.map((s,si)=>`<div class="set ${s.done?'ok':''}">
+        h+=`<div class="sets">${MODEX.has(it.ex)?`<div class="modes"><button class="chip ${mode==='uni'?'on':''}" data-mode="${k}|uni">Un lado cada vez</button><button class="chip ${mode==='bi'?'on':''}" data-mode="${k}|bi">Los dos a la vez</button></div>${mode==='bi'?'<div class="small muted">Una mancuerna en cada mano: los kg son de CADA mancuerna y las reps, por lado. Una sola tanda y un solo descanso.</div>':''}`:''}${it.ex==='farmer'?'<div class="small muted">Una mancuerna en cada mano, los dos lados a la vez. Los kg son de cada mancuerna.</div>':''}${bw?'<div class="small muted">Peso corporal: deja los <b>kg vacíos</b> y apunta solo las repeticiones (o los segundos). Si añades lastre (chaleco, mancuerna…), pon solo los kg <b>extra</b>. No pongas tu peso.</div>':''}${di.sets.map((s,si)=>`<div class="set ${s.done?'ok':''}">
             <span class="ck ${s.done?'on':''}" data-set="${k}|${si}" data-rest="${o.grp?(o.sameN?0:(o.grest||0)):(it.rest||0)}">✓</span>
             <label>Serie ${si+1}</label>
-            <input inputmode="decimal" placeholder="kg" value="${esc(s.kg)}" data-in="${k}|${si}|kg">
+            <input inputmode="decimal" placeholder="${bw?'kg extra':'kg'}" value="${esc(s.kg)}" data-in="${k}|${si}|kg">
             <input inputmode="numeric" placeholder="reps (${esc(it.reps)})" value="${esc(s.reps)}" data-in="${k}|${si}|reps">
           </div>`).join('')}
-          <div class="row"><button class="btn sm ghost" data-addset="${k}">+ serie</button>${it.rest&&!o.grp?`<button class="btn sm ghost" data-timer="${it.rest}">⏱ ${fmtT(it.rest)}</button>`:''}</div></div>`;
+          <div class="row">${it.rest&&!o.grp?`<button class="btn sm ghost" data-timer="${it.rest}">⏱ ${fmtT(it.rest)}</button>`:''}<span class="spacer"></span>${di.sets.length>1?`<button class="btn sm ghost" data-delset="${k}">− serie</button>`:''}<button class="btn sm ghost" data-addset="${k}">+ serie</button></div></div>`;
       } else if(ex.type==='cardio'){
         h+=`<div class="cardio"><span class="small muted">Minutos hechos</span><input inputmode="numeric" value="${esc(di.min)}" data-cmin="${k}"></div>`;
       }
@@ -2837,14 +2845,14 @@ function vProg(){
       ${okCount===list.length?`<button class="btn pri" data-phase="${nx}">Pasar a ${esc(PHASES[nx].name)}</button>`:'<div class="small muted">Cuando estén todos marcados podrás subir de fase. Si un fisio te da otro criterio, haz caso al fisio.</div>'}</div>`;
   }
   h+=`<h2>Semana tipo</h2><div class="card"><table>
-    <tr><th>Día</th><th>Sesión</th><th>Cardio</th></tr>
-    <tr><td>Lunes</td><td>D1 · Torso fuerza</td><td>Zona 2, 30–35 min</td></tr>
-    <tr><td>Martes</td><td>D2 · Pierna y glúteo</td><td>Umbral 3 × 8 min</td></tr>
-    <tr><td>Miércoles</td><td>D3 · Motor + movilidad</td><td>Zona 2, 45–50 min</td></tr>
-    <tr><td>Jueves</td><td>D4 · Torso hipertrofia</td><td>VO2máx 5 × 3 min</td></tr>
-    <tr><td>Viernes</td><td>D5 · Atlético + metcon</td><td>Metcon + 15 min suave</td></tr>
-    <tr><td>Fin de semana</td><td colspan="2">Descanso, o paseo o bici suave</td></tr></table>
-    <div class="small muted" style="margin-top:8px">La app te propone siempre la siguiente sesión en orden, así que si empiezas un sábado no pasa nada.</div></div>
+    <tr><th>Orden</th><th>Sesión</th><th>Cardio</th></tr>
+    <tr><td>1.ª</td><td>D1 · Torso fuerza</td><td>Zona 2, 30–35 min</td></tr>
+    <tr><td>2.ª</td><td>D2 · Pierna y glúteo</td><td>Umbral 3 × 8 min</td></tr>
+    <tr><td>3.ª</td><td>D3 · Motor + movilidad</td><td>Zona 2, 45–50 min</td></tr>
+    <tr><td>4.ª</td><td>D4 · Torso hipertrofia</td><td>VO2máx 5 × 3 min</td></tr>
+    <tr><td>5.ª</td><td>D5 · Atlético + metcon</td><td>Metcon + 15 min suave</td></tr>
+    <tr><td>Resto</td><td colspan="2">Descanso, o paseo o bici suave</td></tr></table>
+    <div class="small muted" style="margin-top:8px">Las sesiones no tienen día fijo: haces 5 por semana, siempre en este orden, y la app te propone la siguiente. Tu semana del plan va de sábado a viernes (empezó el 21/11). Ejemplo: sáb D1 · lun D2 · mar D3 · mié D4 · jue D5 · viernes descanso. Al acabar la quinta, la app te avisa de que ya cumpliste la semana, y los días sin sesión cuentan como descanso en Comida.</div></div>
   <h2>Duración del plan: 12 semanas</h2><div class="card small"><ul>
     <li><b>Semanas 1–4:</b> bloque 1, con las cargas subiendo poco a poco.</li>
     <li><b>Semana 5:</b> descarga (una serie menos y cardio suave).</li>
@@ -2922,19 +2930,20 @@ function vPrs(){
     <div class="small muted" style="margin-top:8px">Si cambias una cifra, todas las cargas en % se recalculan. El 1RM estimado usa la fórmula de Epley: kg × (1 + reps/30).</div></div>
   <h2>Tus marcas de AimHarder</h2><div class="card"><table><tr><th>Ejercicio</th><th class="n">Marca</th><th class="n">Reps</th><th>Fecha</th></tr>
   ${AIM.map(r=>`<tr><td>${esc(r[0])}</td><td class="n">${esc(r[1])}</td><td class="n">${esc(r[2])}</td><td class="small">${esc(r[3])}</td></tr>`).join('')}</table></div>`;
-  h+=vData();
   return h;
 }
 
 // ====== COPIA DE SEGURIDAD ======
 const BK_KEY='gym-camacho-lastbackup';
 function lastBackup(){ try{ return +localStorage.getItem(BK_KEY)||0; }catch(e){ return 0; } }
-function backupDue(){ const hasData=LOGS.length||Object.keys(F.days||{}).length; return hasData && Date.now()-lastBackup()>7*864e5; }
+function cfg(){ return Object.assign({bkDays:7,sound:true,vibrate:true,dbMax:20}, S.settings||{}); }
+function setCfg(k,v){ S.settings=Object.assign({},S.settings||{}); S.settings[k]=v; saveState(); }
+function backupDue(){ const n=cfg().bkDays; const hasData=LOGS.length||Object.keys(F.days||{}).length; return n>0 && hasData && Date.now()-lastBackup()>n*864e5; }
 function exportJson(){ return JSON.stringify({app:'gym-camacho', v:1, exported:new Date().toISOString(), S, LOGS, F}); }
 function vData(){
   const lb=lastBackup();
   return `<h2>Copia de seguridad</h2><div class="card small">
-    <p>${STANDALONE?'Tus datos viven solo en este iPhone. Haz una copia de vez en cuando (la app te avisa cada 7 días) y guárdala en Archivos o iCloud Drive.':'Saca una copia de tus datos para pasarlos a la versión independiente de la app.'}</p>
+    <p>${STANDALONE?'Tus datos viven solo en este iPhone. Haz una copia de vez en cuando ('+(cfg().bkDays?'la app te avisa cada '+cfg().bkDays+' días':'el aviso automático está desactivado')+') y guárdala en Archivos o iCloud Drive.':'Saca una copia de tus datos para pasarlos a la versión independiente de la app.'}</p>
     <p class="muted">Última copia: ${lb? new Date(lb).toLocaleDateString('es-ES')+' '+new Date(lb).toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}) : 'nunca'} · ${LOGS.length} sesiones · ${Object.keys(F.days||{}).length} días de comida</p>
     <div class="row">${STANDALONE?'<button class="btn pri" id="bkExport">⬇️ Exportar copia</button>':''}<button class="btn ${STANDALONE?'':'pri'}" id="bkCopy">📋 Copiar datos</button>${STANDALONE?'<button class="btn" id="bkImport">⬆️ Importar copia</button>':''}</div>
     ${STANDALONE?'<input type="file" id="bkFile" accept=".json,application/json,text/plain" style="display:none">':''}
@@ -3004,14 +3013,14 @@ function vGuia(){
   <li>Abre la dirección de la app en <b>Safari</b>.</li>
   <li>Pulsa <b>Compartir</b> y luego <b>"Añadir a pantalla de inicio"</b>.</li>
   <li>Ábrela siempre desde ese icono. Los datos se guardan en el móvil, dentro de la app del icono. Si la abres en Safari normal, verás otros datos.</li>
-  <li>Funciona sin internet y sin Claude.</li>
-  <li>Haz una <b>copia de seguridad</b> de vez en cuando (Marcas → Copia de seguridad). Si borras el icono o cambias de móvil, la importas y lo recuperas todo.</li></ol></div>`:`<h2>Usarla en el iPhone</h2><div class="card small"><ol style="margin:0 0 0 18px;padding:0">
+  <li>Funciona sin internet para entrenar, ver el menú y apuntar. Necesita conexión para buscar alimentos, escanear códigos de barras y recibir actualizaciones (Ajustes → Conexión y actualización).</li>
+  <li>Haz una <b>copia de seguridad</b> de vez en cuando (Ajustes → Copia de seguridad). Si borras el icono o cambias de móvil, la importas y lo recuperas todo.</li></ol></div>`:`<h2>Usarla en el iPhone</h2><div class="card small"><ol style="margin:0 0 0 18px;padding:0">
   <li>Abre el <b>enlace de la app</b> (el de claude.ai que te pasé, no el archivo .html) en <b>Safari</b>.</li>
   <li>Inicia sesión en Claude con tu cuenta si te lo pide. Hace falta para que se guarden tus datos.</li>
   <li>Pulsa <b>Compartir</b> (el cuadrado con la flecha) y luego <b>"Añadir a pantalla de inicio"</b>.</li>
   <li>Te queda un icono como si fuera una app. Lo que marques se guarda en tu cuenta y lo ves igual en el ordenador.</li></ol>
   <p>Arriba a la derecha tiene que poner <b>☁️ sincronizado</b>. Si pone otra cosa, los datos solo están en ese dispositivo.</p></div>`}
-  <div class="small muted" style="margin:4px 2px">Versión de la app: 14 (24/11/2026)</div>
+  <div class="small muted" style="margin:4px 2px">Versión de la app: ${APP_VER} (${APP_DATE})</div>
   <h2>Gimnasio de la comunidad</h2><div class="card small"><ul>
   <li>Hay un cartel que pide no soltar pesas ni discos: bajada siempre controlada, también en las cargadas.</li>
   <li>La polea del rack aguanta como máximo 100 kg.</li>
@@ -3032,6 +3041,7 @@ function addDays(ds,n){ const d=new Date(ds+'T12:00:00'); d.setDate(d.getDate()+
 function weekPlan(){ const def={0:'rest',1:'train',2:'train',3:'train',4:'train',5:'train',6:'rest'}; return Object.assign(def, F.weekPlan||{}); }
 function dayDefaultType(ds){
   if(LOGS.some(l=>l.date===ds)) return 'train';                 // si has registrado entreno ese día, es de entreno
+  if(ds>=START_DATE && weekSessions(ds)>=5) return 'rest';      // si ya hiciste las 5 sesiones de esa semana, el resto de días es descanso
   return weekPlan()[new Date(ds+'T12:00:00').getDay()];
 }
 function dayType(ds){ const D=F.days[ds]; return (D&&D.type)||dayDefaultType(ds); }
@@ -3284,19 +3294,63 @@ function loadZXing(){ if(window.ZXing) return Promise.resolve(); if(zxLoading) r
   return zxLoading; }
 async function openScanner(){
   const ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px';
-  ov.innerHTML=`<div style="color:#fff;font-weight:700">Apunta al código de barras</div><video id="zxv" playsinline muted style="width:100%;max-width:420px;border-radius:14px;background:#000;aspect-ratio:4/3;object-fit:cover"></video>
-    <div class="row" style="width:100%;max-width:420px"><input id="zxc" class="sel" inputmode="numeric" placeholder="o escribe el número del código" style="flex:1"><button class="btn pri" id="zxok">Buscar</button></div>
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.94);z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:10px;overflow-y:auto';
+  ov.innerHTML=`<div style="color:#fff;font-weight:700">Apunta al código de barras</div>
+    <video id="zxv" playsinline muted autoplay style="width:100%;max-width:460px;border-radius:14px;background:#000;aspect-ratio:4/3;object-fit:cover"></video>
+    <div class="small" style="color:#ccc;max-width:460px;text-align:center">Separa el móvil unos <b>15–20 cm</b> del código (más cerca no enfoca), con buena luz y el código recto. Si se ve borroso, pulsa <b>Reenfocar</b> o haz una <b>foto</b>.</div>
+    <div class="row" id="zxtools" style="width:100%;max-width:460px;justify-content:center"><button class="btn" id="zxre">🔄 Reenfocar</button><button class="btn" id="zxph">📸 Hacer foto</button><button class="btn" id="zxtorch" style="display:none">🔦 Linterna</button></div>
+    <div id="zxzoomw" style="display:none;width:100%;max-width:460px;color:#ccc" class="small">🔍 Zoom <input id="zxzoom" type="range" style="width:75%;vertical-align:middle"></div>
+    <input id="zxfile" type="file" accept="image/*" capture="environment" style="display:none">
+    <div class="row" style="width:100%;max-width:460px"><input id="zxc" class="sel" inputmode="numeric" placeholder="o escribe el número del código" style="flex:1"><button class="btn pri" id="zxok">Buscar</button></div>
     <button class="btn" id="zxclose">Cerrar</button>`;
   document.body.appendChild(ov);
-  let reader=null; const close=()=>{ try{ reader&&reader.reset(); }catch(e){} ov.remove(); };
-  ov.querySelector('#zxclose').onclick=close;
-  ov.querySelector('#zxok').onclick=()=>{ const c=ov.querySelector('#zxc').value; close(); offBarcode(c); };
-  try{
-    await loadZXing();
-    reader=new ZXing.BrowserMultiFormatReader();
-    await reader.decodeFromConstraints({video:{facingMode:'environment'}}, 'zxv', (result)=>{ if(result){ const t=result.getText(); close(); offBarcode(t); } });
-  }catch(e){ const v=ov.querySelector('#zxv'); if(v) v.replaceWith(Object.assign(document.createElement('div'),{textContent:'No se pudo abrir la cámara. Escribe el número del código.',style:'color:#ccc'})); }
+  let reader=null, torchOn=false, closed=false;
+  const q=id=>ov.querySelector('#'+id);
+  const stop=()=>{ try{ reader&&reader.reset(); }catch(e){} };
+  const close=()=>{ closed=true; stop(); ov.remove(); };
+  const mkReader=()=>{
+    try{
+      const H=new Map(); const F=ZXing.BarcodeFormat;
+      H.set(ZXing.DecodeHintType.POSSIBLE_FORMATS,[F.EAN_13,F.EAN_8,F.UPC_A,F.UPC_E,F.CODE_128]);
+      H.set(ZXing.DecodeHintType.TRY_HARDER,true);
+      return new ZXing.BrowserMultiFormatReader(H,150);
+    }catch(e){ return new ZXing.BrowserMultiFormatReader(); }
+  };
+  const onTrack=()=>{
+    try{
+      const vid=q('zxv'); const tr=vid&&vid.srcObject&&vid.srcObject.getVideoTracks&&vid.srcObject.getVideoTracks()[0]; if(!tr||!tr.getCapabilities) return;
+      const caps=tr.getCapabilities()||{};
+      if(caps.focusMode&&caps.focusMode.includes('continuous')) tr.applyConstraints({advanced:[{focusMode:'continuous'}]}).catch(()=>{});
+      if(caps.zoom){ const z=q('zxzoom'); z.min=caps.zoom.min; z.max=caps.zoom.max; z.step=caps.zoom.step||0.1; z.value=Math.min(caps.zoom.max,Math.max(caps.zoom.min,1.5)); q('zxzoomw').style.display='block';
+        tr.applyConstraints({advanced:[{zoom:+z.value}]}).catch(()=>{}); z.oninput=()=>tr.applyConstraints({advanced:[{zoom:+z.value}]}).catch(()=>{}); }
+      if(caps.torch){ const tb=q('zxtorch'); tb.style.display=''; tb.onclick=()=>{ torchOn=!torchOn; tr.applyConstraints({advanced:[{torch:torchOn}]}).catch(()=>{}); tb.classList.toggle('pri',torchOn); }; }
+    }catch(e){}
+  };
+  const start=async()=>{
+    if(closed) return;
+    stop();
+    try{
+      await loadZXing(); if(closed) return;
+      reader=mkReader();
+      await reader.decodeFromConstraints({video:{facingMode:{ideal:'environment'},width:{ideal:1920},height:{ideal:1080},advanced:[{focusMode:'continuous'}]}}, 'zxv', (result)=>{ if(result && !closed){ const t=result.getText(); close(); offBarcode(t); } });
+      setTimeout(onTrack,400);
+    }catch(e){ const v=q('zxv'); if(v) v.replaceWith(Object.assign(document.createElement('div'),{textContent:'No se pudo abrir la cámara. Prueba «Hacer foto» o escribe el número del código.',style:'color:#ccc'})); }
+  };
+  q('zxclose').onclick=close;
+  q('zxok').onclick=()=>{ const c=q('zxc').value; close(); offBarcode(c); };
+  q('zxre').onclick=()=>{ toast('Reenfocando…'); start(); };
+  // Foto con la cámara normal del móvil: enfoca mucho mejor que el vídeo en directo
+  q('zxph').onclick=()=>{ stop(); q('zxfile').click(); };
+  const fi=q('zxfile');
+  fi.addEventListener('cancel',()=>start());
+  fi.onchange=async()=>{
+    const f=fi.files&&fi.files[0]; if(!f){ start(); return; }
+    toast('Leyendo la foto…');
+    const url=URL.createObjectURL(f);
+    try{ await loadZXing(); const r=await mkReader().decodeFromImageUrl(url); URL.revokeObjectURL(url); const t=r.getText(); close(); offBarcode(t); }
+    catch(e){ URL.revokeObjectURL(url); fi.value=''; toast('No he podido leer el código en la foto. Prueba con más luz y a unos 15–20 cm.'); start(); }
+  };
+  start();
 }
 function vFoodMenu(){
   let h=`<div class="small muted" style="margin:6px 2px">Menú hecho con tus platos del Excel y la estructura de tu plan de TC Nutrition. Los gramos son en crudo o en seco, salvo las legumbres de bote. Puedes cambiar platos entre días: lo importante es el total del día. Verdura al gusto, mínimo 150 g por comida. Pulsa un día para verlo.</div>`;
@@ -3404,229 +3458,57 @@ function bindFood(v){
   };
 }
 
-// ====== COACH CON GEMINI (solo versión independiente) ======
-const GK='gym-gemini-key', GCHAT='gym-chat', GMODEL='gym-gemini-model', GSEARCH='gym-gemini-search';
-const lsg=k=>{try{return localStorage.getItem(k)||'';}catch(e){return '';}};
-const lss=(k,v)=>{try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v);}catch(e){} if(k===GK||k===GCHAT) IDB.set(k,v); };
-let chat=[]; try{ chat=JSON.parse(lsg(GCHAT)||'[]'); }catch(e){ chat=[]; }
-let chatBusy=false, showKeyForm=false;
-
-function mdLite(t){
-  let h=esc(t);
-  h=h.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>');
-  h=h.replace(/^#{1,4}\s*(.+)$/gm,'<b>$1</b>');
-  h=h.replace(/^\s*[-*•]\s+(.+)$/gm,'• $1');
-  return h.replace(/\n/g,'<br>');
+// ====== AJUSTES ======
+function vAjustes(){
+  const c=cfg(); const online=(typeof navigator==='undefined')||navigator.onLine!==false;
+  const chip=(k,v,on,t)=>`<button class="chip ${on?'on':''}" data-cfg="${k}|${v}">${t}</button>`;
+  const opts=(arr,cur)=>arr.map(([v,t])=>`<option value="${v}" ${String(v)===String(cur)?'selected':''}>${t}</option>`).join('');
+  return `${vData()}
+    <div class="card small"><div class="row"><span>Avisarme si pasan más de</span><select class="sel" id="cfgBk" style="width:auto">${opts([[7,'7 días'],[14,'14 días'],[30,'30 días'],[0,'nunca']],c.bkDays)}</select></div></div>
+  <h2>Entreno</h2><div class="card small">
+    <div class="row"><span>Pitido al acabar el descanso</span><span class="spacer"></span>${chip('sound','1',c.sound,'Sí')}${chip('sound','0',!c.sound,'No')}</div>
+    <div class="row" style="margin-top:8px"><span>Vibración al acabar el descanso</span><span class="spacer"></span>${chip('vibrate','1',c.vibrate,'Sí')}${chip('vibrate','0',!c.vibrate,'No')}</div>
+    <div class="row" style="margin-top:8px"><span>Mancuerna más pesada que hay</span><span class="spacer"></span><select class="sel" id="cfgDb" style="width:auto">${opts([12,14,16,18,20,22,24,26,28,30,32,36,40].map(n=>[n,n+' kg']),c.dbMax)}</select></div>
+    <div class="muted" style="margin-top:6px">La app no te propondrá subir de ese peso en los ejercicios con mancuernas. En un iPhone, el pitido puede no sonar si el móvil está en silencio.</div></div>
+  <h2>Conexión y actualización</h2><div class="card small">
+    <p>Estado: <b style="color:${online?'var(--acc)':'var(--warn)'}">${online?'🟢 con conexión':'🔴 sin conexión'}</b></p>
+    <p class="muted">Sin internet puedes entrenar, ver el menú y apuntar comida y series. Hace falta conexión para <b>buscar alimentos</b> (Open Food Facts y USDA), <b>escanear códigos de barras</b> y <b>actualizar la app</b>.</p>
+    <div class="row"><button class="btn" id="netTest">📡 Probar conexión</button><button class="btn" id="updCheck">🔄 Buscar actualización</button></div>
+    <div id="netRes" style="margin-top:8px"></div><div id="updRes" style="margin-top:8px"></div></div>
+  <h2>Sobre la app</h2><div class="card small">
+    <p>FitLife · versión <b>${APP_VER}</b> (${APP_DATE})</p>
+    <p class="muted">Plan de 12 semanas desde el ${fdate(START_DATE)} · semana ${weekNo()} · ${LOGS.length} sesiones y ${Object.keys(F.days||{}).length} días de comida guardados en este móvil.</p></div>`;
 }
-function vCoach(){
-  const key=lsg(GK);
-  if(!key || showKeyForm){
-    return `<h2>Coach (Gemini)</h2><div class="card small">
-      <p>Pega tu clave de la API de Gemini. Se guarda <b>solo en este móvil</b>: no va en las copias de seguridad ni se sube a la web.</p>
-      <input id="gkey" class="sel" type="password" autocomplete="off" placeholder="AIza…" value="${esc(key)}">
-      <div class="row" style="margin-top:8px"><button class="btn pri" id="gsave">Guardar clave</button>${key?'<button class="btn" id="gcancel">Cancelar</button><button class="btn danger" id="gdel">Borrar clave</button>':''}</div>
-      <p class="muted" style="margin-top:10px">Cómo conseguirla: entra en <b>aistudio.google.com</b> con tu cuenta de Google → <b>Get API key</b> → <b>Create API key</b> → cópiala y pégala aquí.</p></div>`;
-  }
-  const search=lsg(GSEARCH)!=='0';
-  let h=`<div class="row" style="margin:6px 0"><b>🤖 Coach</b><span class="muted small">${esc(lsg(GMODEL)||'Gemini')}</span><span class="spacer"></span>
-    <button class="chip ${search?'on':''}" id="gsearch">🌐 Internet ${search?'sí':'no'}</button><button class="chip" id="gclear">Borrar chat</button><button class="chip" id="gkeybtn">🔑</button></div>`;
-  if(!chat.length) h+=`<div class="card small muted">Conoce tu programa, tu historial de entrenos, la comida, el peso y tus marcas. Prueba con:
-    <div class="row" style="margin-top:8px">${['¿Qué me toca hoy y con qué pesos?','¿Cómo voy de proteína esta semana?','Me molesta el glúteo en el step-up, ¿por qué lo cambio?','¿Qué cenar si me quedan 600 kcal?'].map(q=>`<button class="chip" data-gq="${esc(q)}">${esc(q)}</button>`).join('')}</div></div>`;
-  chat.forEach(m=>{
-    h+=`<div class="card" style="${m.role==='user'?'background:#1a2416;border-color:#3c5a2a;margin-left:40px':'margin-right:10px'}"><div class="small">${m.role==='user'?esc(m.text).replace(/\n/g,'<br>'):mdLite(m.text)}</div>
-      ${m.sources&&m.sources.length?`<div class="small muted" style="margin-top:8px">Fuentes: ${m.sources.map(s=>`<a href="${esc(s.uri)}" target="_blank" rel="noopener">${esc(s.title||'enlace')}</a>`).join(' · ')}</div>`:''}
-      ${m.suggest?`<iframe sandbox="allow-popups allow-popups-to-escape-sandbox" srcdoc="${esc(m.suggest)}" style="width:100%;height:60px;border:0;margin-top:6px;background:transparent"></iframe>`:''}</div>`;
-  });
-  if(chatBusy) h+=`<div class="card small muted">Pensando…</div>`;
-  h+=`<div class="card" style="position:sticky;bottom:78px"><textarea id="gq" placeholder="Pregúntale algo…" style="min-height:60px"></textarea>
-    <div class="row" style="margin-top:6px"><span class="spacer"></span><button class="btn pri" id="gsend" ${chatBusy?'disabled':''}>Enviar</button></div></div>
-    <div class="small muted" style="margin:6px 2px">Las respuestas pueden equivocarse. No sustituye a un médico ni a un fisio.</div>`;
-  return h;
+async function netTest(){
+  const out=document.getElementById('netRes'); if(!out) return; out.textContent='Probando…'; const res=[];
+  const tests=[['Open Food Facts','https://world.openfoodfacts.org/api/v2/product/3017620422003.json?fields=code'],['USDA FoodData Central','https://api.nal.usda.gov/fdc/v1/foods/search?api_key=DEMO_KEY&pageSize=1&query=egg'],['Escáner (librería ZXing)',null]];
+  for(const [n,u] of tests){ const t=Date.now(); try{ if(u) await fj(u,7000); else await Promise.race([loadZXing(), new Promise((_,rej)=>setTimeout(()=>rej(new Error('tiempo')),8000))]); res.push('✅ '+n+' ('+(Date.now()-t)+' ms)'); }catch(e){ res.push('❌ '+n+': sin respuesta'); } }
+  out.innerHTML=res.join('<br>');
 }
-function coachContext(){
-  const sess=SESSIONS.map(s=>{
-    const items=s.blocks.flatMap(b=>b.items.filter(it=>it.ph.includes(S.phase)).map(it=>{
-      const n=EX[it.ex].name; if(it.sets) return `${n} ${it.sets}x${it.reps}${loadTxt(it.load)?' @ '+loadTxt(it.load):''}${it.tempo?' tempo '+it.tempo+' (movimiento-pausa en el extremo-recuperación-pausa antes de repetir)':''}`; return `${n}: ${it.dose||''}`; }));
-    return `${s.id} ${s.title}: ${items.join('; ')}`;}).join('\n');
-  const logs=[...LOGS].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,15).map(l=>{
-    const ent=(l.entries||[]).map(e=>`${EX[e.ex]?EX[e.ex].name:e.ex} ${e.sets.filter(s=>s.kg||s.reps).map(s=>(s.kg?s.kg+'x':'')+(s.reps||'?')).join(',')}`).join('; ');
-    return `${l.date} ${l.session} dolor ${l.pain??'-'}/10 RPE ${l.rpe??'-'}. ${ent}${(l.cardio||[]).length?'. Cardio: '+l.cardio.map(c=>c.min+' min').join(','):''}${l.notes?'. Notas: '+l.notes:''}`;}).join('\n');
-  const days=Object.keys(F.days||{}).sort().slice(-14).map(ds=>{
-    const D=F.days[ds]; const t=macros((D.items||[]).map(x=>[x.f,x.g])); const ty=dayType(ds);
-    return `${ds} (${ty==='train'?'entreno':'descanso'}): ${Math.round(t.k)} kcal, P ${Math.round(t.p)}, H ${Math.round(t.c)}, G ${Math.round(t.g)}${D.w?', peso '+D.w+' kg':''}`;}).join('\n');
-  const td=F.days[today()]; const todayFood=td?(td.items||[]).map(x=>{const f=allFoods()[x.f];return `${x.g} g ${f?f.n:x.f} (${x.m||''})`;}).join('; '):'nada registrado';
-  const prs=Object.keys(BASE_PRS).map(k=>`${BASE_PRS[k].name} 1RM ${rm(k)} kg`).join(', ');
-  return `Eres el entrenador personal y asesor de nutrición de José Manuel (Camacho), dentro de su app de gimnasio. Responde en español de España, directo, breve y práctico. Usa sus datos reales de abajo. Si algo no está en los datos, dilo. Si preguntas por salud o dolor, da orientación prudente y recomienda fisio o médico ante señales de alarma (hormigueo, adormecimiento, pérdida de fuerza, dolor que irradia o empeora). No inventes datos.
-
-PERFIL: 35 años, 1,75 m, ~78 kg, viene de CrossFit. Objetivos: mejorar mucho el cardio, definir sin perder fuerza, mejorar movilidad (fuerza en rangos máximos). Entrena 5 días/semana, sesiones de ~90 min. Gimnasio de su comunidad: rack con polea (máx 100 kg) y landmine, barra olímpica, barra hexagonal, multiestación Life Fitness, banco con extensión/curl de piernas, TRX, torre de dominadas/fondos, sandbag 15 kg, mancuernas hasta 20 kg, 3 bicis estáticas, elíptica y cinta; puede correr por la calle. No se pueden soltar pesas (vecinos).
-LESIÓN: dolor en glúteo derecho alto tras back squat y peso muerto, con irradiación por la parte trasera de la pierna hasta el tobillo (posible irritación del ciático); ya no irradia, molestia al adelantar la pierna. Plan por fases: Fase 1 proteger (sin back squat, peso muerto pesado ni saltos), Fase 2 reintroducir, Fase 3 construir. Semáforo de dolor: 0-2 sigue, 3-4 baja carga/rango, ≥5 o irradiación para.
-ESTADO: hoy ${today()}, semana ${weekNo()} de 12${isDeload()?' (descarga)':''}, ${PHASES[S.phase].name}. Siguiente sesión propuesta: ${nextSession()}.
-PROGRAMA (fase actual):
-${sess}
-MARCAS: ${prs}.
-NUTRICIÓN: objetivos entreno ${TARGETS.train.k} kcal (P ${TARGETS.train.p} H ${TARGETS.train.c} G ${TARGETS.train.g}); descanso ${TARGETS.rest.k} kcal (P ${TARGETS.rest.p} H ${TARGETS.rest.c} G ${TARGETS.rest.g}). Comidas 08:00, 14:30, 17:30 (plátano antes de entrenar, batido whey+bebida de avena después), 21:30. Bajar 0,2-0,4 kg/semana.
-COMIDA DE HOY: ${todayFood}
-ÚLTIMOS DÍAS DE COMIDA:
-${days||'sin datos'}
-ÚLTIMAS SESIONES:
-${logs||'sin sesiones registradas'}`;
-}
-async function pickModel(key){
-  const saved=lsg(GMODEL); if(saved) return saved;
+async function updCheck(){
+  const out=document.getElementById('updRes'); if(!out) return; out.textContent='Buscando…';
   try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key}});
-    if(r.ok){
-      const j=await r.json();
-      const names=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace('models/',''))
-        .filter(n=>/^gemini-[\d.]+-flash$/.test(n));
-      const ver=n=>parseFloat(n.split('-')[1])||0;
-      names.sort((a,b)=>ver(b)-ver(a));
-      if(names[0]){ lss(GMODEL,names[0]); return names[0]; }
-    }
-  }catch(e){}
-  return 'gemini-flash-latest';
+    const r=await fetch('./index.html',{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status);
+    const t=await r.text(); const m=t.match(/const APP_VER\s*=\s*(\d+)/); const nv=m?+m[1]:0;
+    try{ const reg=await navigator.serviceWorker.getRegistration(); if(reg) reg.update(); }catch(e){}
+    if(nv>APP_VER){ out.innerHTML='Hay una versión nueva ('+nv+'). <button class="btn sm pri" id="updGo">Actualizar ahora</button>'; document.getElementById('updGo').onclick=()=>location.reload(); }
+    else out.textContent='Ya tienes la última versión ('+APP_VER+').';
+  }catch(e){ out.textContent='No se pudo comprobar. ¿Tienes internet?'; }
 }
-const GMODELS='gym-gemini-models';
-async function modelList(key){
-  try{ const l=JSON.parse(lsg(GMODELS)||'null'); if(l&&l.length&&Date.now()-(+lsg(GMODELS+'-t')||0)<864e5) return l; }catch(e){}
-  let names=[];
-  try{
-    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key}});
-    if(r.ok){ const j=await r.json();
-      names=(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>m.name.replace('models/',''))
-        .filter(n=>/^gemini-[\d.]+-flash(-lite)?$/.test(n));
-      const ver=n=>parseFloat(n.split('-')[1])||0, lite=n=>/lite$/.test(n)?1:0;
-      names.sort((a,b)=>lite(a)-lite(b)||ver(b)-ver(a)); }
-  }catch(e){}
-  ['gemini-flash-latest','gemini-flash-lite-latest'].forEach(n=>{ if(!names.includes(n)) names.push(n); });
-  lss(GMODELS, JSON.stringify(names)); lss(GMODELS+'-t', String(Date.now()));
-  return names;
+function bindAjustes(v){
+  v.querySelectorAll('[data-cfg]').forEach(b=>b.onclick=()=>{ const [k,val]=b.dataset.cfg.split('|'); setCfg(k,val==='1'); render(); });
+  const bk=document.getElementById('cfgBk'); if(bk) bk.onchange=()=>{ setCfg('bkDays',+bk.value); render(); };
+  const db=document.getElementById('cfgDb'); if(db) db.onchange=()=>{ setCfg('dbMax',+db.value); toast('Guardado: '+db.value+' kg'); };
+  const nt=document.getElementById('netTest'); if(nt) nt.onclick=netTest;
+  const uc=document.getElementById('updCheck'); if(uc) uc.onclick=updCheck;
 }
-// Llama a Gemini; si un modelo está saturado (503/500) reintenta y prueba el siguiente modelo
-async function callGemini(body, onStatus){
-  const key=lsg(GK); let models=(await modelList(key)).slice(0,4); let lastErr='';
-  const ok=lsg(GMODEL); if(ok && models.includes(ok)) models=[ok, ...models.filter(m=>m!==ok)]; // primero el último que funcionó
-  for(const model of models){
-    for(let attempt=0; attempt<2; attempt++){
-      let r, j={};
-      try{ r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify(body)}); j=await r.json().catch(()=>({})); }
-      catch(e){ throw new Error('No hay conexión con Gemini. ¿Tienes internet?'); }
-      if(r.ok){ lss(GMODEL, model); return j; }
-      const msg=(j.error&&j.error.message)||'';
-      if(r.status===400 && /API key/i.test(msg)) throw new Error('La clave no es válida. Revísala con el botón 🔑 en Coach.');
-      if(r.status===403) throw new Error('La clave no tiene permiso para Gemini. Revísala en aistudio.google.com.');
-      if(r.status===404){ lss(GMODELS,null); break; }               // modelo retirado: siguiente
-      if(r.status===429){ lastErr='Límite gratuito de Gemini alcanzado por ahora. Prueba en un rato.'; break; } // cupo de ese modelo: siguiente
-      if(r.status>=500){ lastErr='Gemini está saturado ahora mismo. Prueba en un minuto.'; onStatus&&onStatus('Gemini va lento, reintentando…'); await new Promise(res=>setTimeout(res, 1000)); continue; }
-      throw new Error(msg||('Error '+r.status));
-    }
-  }
-  throw new Error(lastErr||'No se pudo conectar con Gemini.');
-}
-async function askCoach(q){
-  const key=lsg(GK); if(!key||chatBusy||!q.trim()) return;
-  chat.push({role:'user', text:q.trim()}); chatBusy=true; render(); scrollEnd();
-  try{
-    const body={ systemInstruction:{parts:[{text:coachContext()}]},
-      contents: chat.slice(-12).map(m=>({role:m.role==='user'?'user':'model', parts:[{text:m.text}]})) };
-    if(lsg(GSEARCH)!=='0') body.tools=[{google_search:{}}];
-    const j=await callGemini(body);
-    const c=(j.candidates||[])[0]||{};
-    const text=((c.content&&c.content.parts)||[]).map(p=>p.text||'').join('').trim()||'(sin respuesta)';
-    const gm=c.groundingMetadata||{};
-    const sources=(gm.groundingChunks||[]).map(x=>x.web).filter(Boolean).slice(0,5).map(w=>({uri:w.uri,title:w.title}));
-    const suggest=gm.searchEntryPoint&&gm.searchEntryPoint.renderedContent||'';
-    chat.push({role:'model', text, sources, suggest});
-  }catch(e){
-    chat.push({role:'model', text:'⚠️ '+(e.message||'No se pudo conectar. ¿Tienes internet?')});
-  }
-  chatBusy=false; chat=chat.slice(-40); lss(GCHAT, JSON.stringify(chat)); render(); scrollEnd();
-}
-function scrollEnd(){ setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),50); }
-function bindCoach(v){
-  const gs=document.getElementById('gsave'); if(gs) gs.onclick=()=>{ const k=document.getElementById('gkey').value.trim(); if(!k){toast('Pega la clave');return;} lss(GK,k); lss(GMODEL,null); showKeyForm=false; render(); toast('Clave guardada'); };
-  const gc=document.getElementById('gcancel'); if(gc) gc.onclick=()=>{ showKeyForm=false; render(); };
-  const gd=document.getElementById('gdel'); if(gd) gd.onclick=()=>{ if(confirm('¿Borrar la clave de este móvil?')){ lss(GK,null); lss(GMODEL,null); showKeyForm=false; render(); } };
-  const kb=document.getElementById('gkeybtn'); if(kb) kb.onclick=()=>{ showKeyForm=true; render(); };
-  const sr=document.getElementById('gsearch'); if(sr) sr.onclick=()=>{ lss(GSEARCH, lsg(GSEARCH)==='0'?'1':'0'); render(); };
-  const cl=document.getElementById('gclear'); if(cl) cl.onclick=()=>{ if(confirm('¿Borrar la conversación?')){ chat=[]; lss(GCHAT,'[]'); render(); } };
-  v.querySelectorAll('[data-gq]').forEach(b=>b.onclick=()=>askCoach(b.dataset.gq));
-  const send=document.getElementById('gsend'); if(send){ const ta=document.getElementById('gq');
-    send.onclick=()=>{ const q=ta.value; ta.value=''; askCoach(q); };
-    const mic=document.getElementById('gmic'); let on=false; if(mic){
-    const setBtn=v=>{ on=v; mic.textContent=v?'⏹':'🎤'; mic.classList.toggle('pri',v); };
-    mic.onclick=()=>{
-      if(geminiDictateActive() || geminiDictateAvailable()){
-        geminiDictate(t=>{ ta.value=(ta.value?ta.value.replace(/\s*$/,' '):'')+t; }, st=>{ mic.disabled=(st==='busy'); mic.classList.toggle('pri',st==='rec'); mic.textContent= st==='rec'?'⏹':st==='busy'?'⏳':'🎤'; });
-        return;
-      }
-      if(on){ stopRec(); return; }
-      const ok=browserDictate(()=>ta.value, v=>{ ta.value=v; }, setBtn, ()=>kbTip(ta));
-      if(!ok) kbTip(ta);
-    }; } }
-}
-
-// ====== DICTADO GRABANDO + TRANSCRIPCIÓN CON GEMINI ======
-// En iPhone el reconocimiento de voz de Safari falla a partir de la segunda vez (fallo conocido de WebKit)
-// y no existe en las apps de la pantalla de inicio. Grabar con el micro (getUserMedia) sí funciona siempre,
-// así que se graba el audio y Gemini lo pasa a texto.
-let gRec=null;
-function geminiDictateAvailable(){ return !!(lsg(GK) && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder); }
-function geminiDictateActive(){ return !!gRec; }
-function geminiDictateStop(){ if(gRec && gRec.state==='recording'){ try{ gRec.stop(); }catch(e){} } }
-async function geminiDictate(onText, setState){
-  if(gRec){ geminiDictateStop(); return; }
-  let stream;
-  try{ stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true}}); }
-  catch(e){ toast('Sin permiso para el micrófono. Revísalo en los ajustes del navegador.'); setState('idle'); return; }
-  const types=['audio/mp4','audio/webm;codecs=opus','audio/webm','audio/aac'];
-  const mime=types.find(t=>{ try{ return MediaRecorder.isTypeSupported(t); }catch(e){ return false; } })||'';
-  let rec; try{ rec=mime? new MediaRecorder(stream,{mimeType:mime}) : new MediaRecorder(stream); }catch(e){ stream.getTracks().forEach(t=>t.stop()); toast('Este navegador no permite grabar.'); setState('idle'); return; }
-  const chunks=[]; gRec=rec;
-  const hard=setTimeout(geminiDictateStop, 90000);
-  rec.ondataavailable=e=>{ if(e.data && e.data.size) chunks.push(e.data); };
-  rec.onstop=async()=>{
-    clearTimeout(hard); stream.getTracks().forEach(t=>t.stop()); gRec=null;
-    const blob=new Blob(chunks,{type:rec.mimeType||mime||'audio/mp4'});
-    if(blob.size<1500){ setState('idle'); toast('No se ha grabado nada.'); return; }
-    setState('busy');
-    try{ const t=await transcribe(blob); if(t) onText(t); else toast('No te he entendido, prueba otra vez.'); }
-    catch(e){ toast(e.message||'No se pudo transcribir.'); }
-    setState('idle');
-  };
-  rec.start(); setState('rec');
-}
-async function toWav16k(blob){
-  const buf=await blob.arrayBuffer();
-  const tmp=new OfflineAudioContext(1, 16000, 16000);
-  const decoded=await tmp.decodeAudioData(buf.slice(0));
-  const len=Math.ceil(decoded.duration*16000);
-  const off=new OfflineAudioContext(1, Math.max(1,len), 16000);
-  const src=off.createBufferSource(); src.buffer=decoded; src.connect(off.destination); src.start();
-  const out=(await off.startRendering()).getChannelData(0);
-  const ab=new ArrayBuffer(44+out.length*2), v=new DataView(ab);
-  const ws=(o,s)=>{ for(let i=0;i<s.length;i++) v.setUint8(o+i,s.charCodeAt(i)); };
-  ws(0,'RIFF'); v.setUint32(4,36+out.length*2,true); ws(8,'WAVE'); ws(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true);
-  v.setUint32(24,16000,true); v.setUint32(28,32000,true); v.setUint16(32,2,true); v.setUint16(34,16,true); ws(36,'data'); v.setUint32(40,out.length*2,true);
-  for(let i=0;i<out.length;i++){ const x=Math.max(-1,Math.min(1,out[i])); v.setInt16(44+i*2, x<0?x*0x8000:x*0x7fff, true); }
-  return new Blob([ab],{type:'audio/wav'});
-}
-function b64(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); }); }
-async function transcribe(blob){
-  let wav; try{ wav=await toWav16k(blob); }catch(e){ wav=blob; }
-  const body={ contents:[{ role:'user', parts:[
-    { inline_data:{ mime_type: wav.type||'audio/wav', data: await b64(wav) } },
-    { text:'Transcribe literalmente este audio en español de España. Devuelve SOLO el texto transcrito, con puntuación, sin comillas ni comentarios. Si no hay voz, devuelve una cadena vacía.' } ] }],
-    generationConfig:{ temperature:0 } };
-  const j=await callGemini(body, m=>toast(m));
-  const c=(j.candidates||[])[0]||{};
-  return ((c.content&&c.content.parts)||[]).map(p=>p.text||'').join('').trim().replace(/^["“]|["”]$/g,'');
-}
+window.addEventListener('online',()=>{ if(tab==='ajustes') render(); });
+window.addEventListener('offline',()=>{ if(tab==='ajustes') render(); });
 
 // ====== EVENTOS ======
 function bind(){
   const v=document.getElementById('view');
-  bindFood(v); bindData(v); if(STANDALONE) bindCoach(v);
+  bindFood(v); bindData(v); bindAjustes(v);
   v.querySelectorAll('[data-sess]').forEach(b=>b.onclick=()=>{
     const sid=b.dataset.sess;
     if(S.draft && S.draft.session!==sid && draftHasData() && !confirm('Tienes una sesión a medias. ¿Cambiar y descartarla?')) return;
@@ -3644,6 +3526,8 @@ function bind(){
   v.querySelectorAll('[data-in]').forEach(el=>el.oninput=()=>{ const [k,si,f]=el.dataset.in.split('|'); S.draft.items[k].sets[+si][f]=el.value.replace(',','.'); saveState(); });
   v.querySelectorAll('[data-cmin]').forEach(el=>el.oninput=()=>{ S.draft.items[el.dataset.cmin].min=el.value; saveState(); });
   v.querySelectorAll('[data-addset]').forEach(el=>el.onclick=()=>{ const it=S.draft.items[el.dataset.addset]; const l=it.sets[it.sets.length-1]; it.sets.push({kg:l?l.kg:'',reps:'',done:false}); saveState(); render(); });
+  v.querySelectorAll('[data-delset]').forEach(el=>el.onclick=()=>{ const it=S.draft.items[el.dataset.delset]; if(!it||it.sets.length<=1) return; const l=it.sets[it.sets.length-1];
+    if((l.done||l.reps||(l.kg!==''&&l.kg!==it.sug&&+l.kg!==+it.sug)) && !confirm('La última serie tiene datos. ¿Quitarla?')) return; it.sets.pop(); saveState(); render(); });
   v.querySelectorAll('[data-timer]').forEach(el=>el.onclick=()=>startTimer(+el.dataset.timer));
   v.querySelectorAll('[data-mode]').forEach(el=>el.onclick=()=>{ const [k,m]=el.dataset.mode.split('|'); const x=S.draft.items[k]; if(!x) return; x.mode=m; S.exMode=S.exMode||{}; S.exMode[x.ex]=m; saveState(); render(); });
   const pain=document.getElementById('pain'); if(pain){
@@ -3651,7 +3535,6 @@ function bind(){
     const rpe=document.getElementById('rpe'); rpe.oninput=()=>{S.draft.rpe=+rpe.value;document.getElementById('rpeV').textContent=rpe.value;saveState();};
     const notes=document.getElementById('notes'); notes.oninput=()=>{S.draft.notes=notes.value;saveState();};
     document.getElementById('finish').onclick=finish;
-    setupMic(notes);
     document.getElementById('reset').onclick=()=>{ if(confirm('¿Vaciar la sesión actual?')){ S.draft=null; saveState(); render(); } };
   }
   v.querySelectorAll('[data-phase]').forEach(el=>el.onclick=()=>{ const p=+el.dataset.phase; if(p===S.phase) return; if(!confirm('¿Cambiar a '+PHASES[p].name+'?')) return; S.phase=p; S.draft=null; saveState(); render(); });
@@ -3688,84 +3571,6 @@ async function finish(){
   tab='hist'; render(); window.scrollTo(0,0);
 }
 
-// ====== DICTADO ======
-// Reconocimiento de voz del navegador.
-// En iPhone, crear un reconocedor nuevo cada vez hace que a la segunda el micro se encienda sin captar
-// nada. Por eso se usa UN SOLO reconocedor para toda la sesión, se va mostrando el texto mientras hablas,
-// y si en 8 s no llega nada se reinicia solo para que la siguiente pulsación funcione.
-const IS_IOS=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-let SRI=null, recOn=false, recCtx=null, recIdle=null, recHard=null;
-function getRec(){
-  if(SRI) return SRI;
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return null;
-  let r; try{ r=new SR(); }catch(e){ return null; }
-  r.lang='es-ES'; r.continuous=true; r.interimResults=true; r.maxAlternatives=1;
-  r.onresult=e=>{
-    if(!recCtx) return;
-    let t=''; for(let i=0;i<e.results.length;i++) t+=e.results[i][0].transcript;
-    t=t.trim(); if(!t) return;
-    recCtx.got=true; clearTimeout(recIdle);
-    recCtx.set(recCtx.base ? recCtx.base.replace(/\s*$/,' ')+t : t.charAt(0).toUpperCase()+t.slice(1));
-  };
-  r.onerror=e=>{ const err=e&&e.error; if(recCtx && (err==='not-allowed'||err==='service-not-allowed'||err==='audio-capture')){ const f=recCtx.fail; endRec(); f(); } };
-  r.onend=()=>endRec();
-  SRI=r; return r;
-}
-function endRec(){
-  clearTimeout(recIdle); clearTimeout(recHard);
-  const c=recCtx; recCtx=null; recOn=false;
-  if(c){ c.btn(false); c.done&&c.done(); if(!c.got) toast('No te he oído. Pulsa otra vez el micro.'); }
-}
-function stopRec(){
-  if(!SRI || !recOn){ endRec(); return; }
-  try{ SRI.stop(); }catch(e){}
-  // si el iPhone no avisa de que ha terminado, se fuerza (solo para esta misma sesión)
-  const ctx=recCtx;
-  setTimeout(()=>{ if(recOn && recCtx===ctx){ try{ SRI.abort(); }catch(e){} endRec(); } }, 1500);
-}
-function browserDictate(getText, setText, setBtn, onFail, onDone){
-  const r=getRec(); if(!r) return false;
-  if(recOn){ stopRec(); return true; }
-  recCtx={ base:getText(), set:setText, btn:setBtn, fail:onFail, done:onDone, got:false };
-  const go=()=>{
-    try{ r.start(); recOn=true; setBtn(true);
-      recIdle=setTimeout(()=>{ if(recOn && recCtx && !recCtx.got){ try{ r.abort(); }catch(e){} SRI=null; endRec(); } }, 8000);
-      recHard=setTimeout(stopRec, 120000);
-    }catch(e){
-      // se había quedado una sesión abierta: se cierra y se reintenta una vez con un reconocedor limpio
-      try{ r.abort(); }catch(_){} SRI=null;
-      const r2=getRec(); if(!r2){ endRec(); onFail(); return; }
-      setTimeout(()=>{ try{ r2.start(); recOn=true; setBtn(true); recHard=setTimeout(stopRec,120000); }catch(_){ const f=onFail; recCtx=null; setBtn(false); f(); } }, 300);
-    }
-  };
-  go();
-  return true;
-}
-document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden' && recOn) stopRec(); });
-
-let dict=null, rec=null, listening=false;
-try{ if(window.claude&&claude.use) claude.use('dictation').then(d=>{dict=d;}).catch(()=>{}); }catch(e){}
-function setupMic(ta){
-  const b=document.getElementById('mic'); if(!b) return;
-  const append=t=>{ if(!t) return; ta.value=(ta.value?ta.value.replace(/\s*$/,' '):'')+t.trim(); S.draft.notes=ta.value; saveState(); };
-  const setBtn=on=>{ listening=on; b.textContent=on?'⏹ Parar':'🎤 Dictar'; b.classList.toggle('pri',on); };
-  b.onclick=()=>{
-    if(typeof geminiDictate==='function' && (geminiDictateActive() || geminiDictateAvailable())){
-      geminiDictate(append, st=>{ listening=false; b.disabled=(st==='busy'); b.classList.toggle('pri',st==='rec');
-        b.textContent= st==='rec'?'⏹ Terminar':st==='busy'?'⏳ Transcribiendo…':'🎤 Dictar'; });
-      return;
-    }
-    if(listening){ if(dict&&dict.active()) dict.stop(); stopRec(); return; }
-    if(dict){ // escritorio (Chrome / app de Claude)
-      dict.onFinal(({text})=>append(text)); dict.onState(({state})=>setBtn(state!=='idle'));
-      dict.start({language:'es'}).catch(()=>{ kbTip(ta); }); return;
-    }
-    if(browserDictate(()=>ta.value, v=>{ ta.value=v; S.draft.notes=v; }, setBtn, ()=>kbTip(ta), ()=>saveState())) return;
-    kbTip(ta);
-  };
-}
-function kbTip(ta){ ta.focus(); try{ ta.setSelectionRange(ta.value.length, ta.value.length); }catch(e){} toast('Este navegador no deja dictar aquí: usa el 🎤 del teclado'); }
-
 // ====== TEMPORIZADOR ======
 let tEnd=0, tInt=null;
 function startTimer(sec){
@@ -3775,13 +3580,12 @@ function startTimer(sec){
 function tick(){
   const left=Math.round((tEnd-Date.now())/1000); const el=document.getElementById('timer');
   document.getElementById('tLeft').textContent= left>0? fmtT(left) : '¡Ya!';
-  if(left<=0 && !el.classList.contains('end')){ el.classList.add('end'); beep(); try{navigator.vibrate&&navigator.vibrate([200,100,200]);}catch(e){} setTimeout(()=>{ if(Date.now()>=tEnd){ el.classList.remove('show'); clearInterval(tInt);} },6000); }
+  if(left<=0 && !el.classList.contains('end')){ el.classList.add('end'); if(cfg().sound) beep(); try{ if(cfg().vibrate&&navigator.vibrate) navigator.vibrate([200,100,200]); }catch(e){} setTimeout(()=>{ if(Date.now()>=tEnd){ el.classList.remove('show'); clearInterval(tInt);} },6000); }
 }
 function beep(){ try{ const c=new (window.AudioContext||window.webkitAudioContext)(); [0,.25].forEach(t=>{const o=c.createOscillator(),g=c.createGain();o.frequency.value=880;o.connect(g);g.connect(c.destination);g.gain.setValueAtTime(.2,c.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+t+.2);o.start(c.currentTime+t);o.stop(c.currentTime+t+.22);}); setTimeout(()=>{ try{ c.close(); }catch(e){} },800); }catch(e){} }
 document.getElementById('tPlus').onclick=()=>{ tEnd=Math.max(tEnd,Date.now())+30000; document.getElementById('timer').classList.remove('end'); };
 document.getElementById('tStop').onclick=()=>{ clearInterval(tInt); document.getElementById('timer').classList.remove('show'); };
 
-if(!STANDALONE){ const ct=document.querySelector('.coachtab'); if(ct) ct.remove(); }
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{ tab=b.dataset.t; render(); window.scrollTo(0,0); });
 // Botón ✕ dentro de los cuadros de texto para borrar todo de golpe
 function addClearBtns(){
